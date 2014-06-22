@@ -1,0 +1,39 @@
+{{> top}}
+    <article class="container-fluid content">
+        <h1>Add Page</h1>
+
+        <form role="form" action="{{path}}/create" method="post">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input name="title" type="text" class="form-control" id="title" placeholder="Title" value="{{title}}">
+            </div>
+
+            {{#if parentId}}
+                <div class="form-group">
+                    <label for="basePath">Base Path</label>
+                    <input name="basePath" type="text" class="form-control" id="basePath" placeholder="Path" value="{{basePath}}" disabled="disabled">
+                </div>
+
+                <div class="form-group">
+                    <label for="path">Path</label>
+                    <input name="path" type="text" class="form-control" id="path" placeholder="Path" value="{{path}}">
+                </div>
+
+                <input type="hidden" name="parentId" id="parentId" value="{{parentId}}">
+            {{else}}
+                <div class="form-group">
+                    <label for="path">Path</label>
+                    <input name="path" type="text" class="form-control" id="path" placeholder="Path" value="{{basePath}}" disabled="disabled">
+                </div>
+            {{/if}}
+
+            <div class="form-group">
+                <label for="body">Content</label>
+                <textarea name="body" class="form-control" id="body" rows="20">{{body}}</textarea>
+            </div>
+
+            <button type="save" class="btn btn-success">Add</button>
+            <button type="cancel" class="btn btn-warning">Cancel</button>
+        </form>
+    </article>
+{{> bottom}}

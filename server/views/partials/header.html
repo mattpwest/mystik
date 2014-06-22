@@ -1,0 +1,47 @@
+<header>
+    <nav class="navbar navbar-inverse navbar-default" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">Mystik CMS</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    {{#each navigation}}
+                        <li>
+                            <a href="{{path}}">{{title}}</a>
+                        </li>
+                    {{/each}}
+                    {{#if currentUser}}
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            ADMIN <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="/create">Add Page</a>
+                            </li>
+                        </ul>
+                    </li>
+                    {{/if}}
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        {{#if currentUser}}
+                            <a href="/users/{{user._id}}">{{currentUser.email}}</a>
+                        {{else}}
+                            <a href="{{path}}/login">Sign In / Register</a>
+                        {{/if}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>

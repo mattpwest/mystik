@@ -1,0 +1,32 @@
+{{>top}}
+    <div class="container-fluid content">
+        <h2>Sign In</h2>
+        <form role="form" class="form-horizontal" action="/login" method="post">
+            <legend>Sign in to make changes to the site or leave comments.</legend>
+
+            <input type="hidden" name="path" id="path" value="{{path}}">
+
+            <div class="form-group">
+                <label class="col-sm-2" for="email">Email</label>
+                <div class="col-sm-10">
+                    <input id="email" name="email" type="email" placeholder="Email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2" for="password">Password</label>
+                <div class="col-sm-10">
+                    <input id="password" name="password" type="password" placeholder="Password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </form>
+
+        {{#if message}}
+            <div class="alert alert-danger">
+                {{message}}
+            </div>
+        {{/if}}
+    </div>
+{{>bottom}}

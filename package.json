@@ -1,0 +1,53 @@
+{
+  "name": "mystik",
+  "version": "0.1.0-alpha.1",
+  "description": "Mystik CMS is a simple, light-weight content management system aimed at getting small websites up and running as quickly and easily as possible.",
+  "license": "MIT",
+  "keywords": [
+    "cms",
+    "markdown"
+  ],
+  "bugs": {
+    "url": "https://trello.com/b/ozVTEkDw/mystik-cms",
+    "email": "matt@chaotik.co.za"
+  },
+  "author": {
+    "name": "Matt Van Der Westhuizen",
+    "email": "matt@chaotik.co.za"
+  },
+  "bin": "./cli.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattpwest/mystik.git"
+  },
+  "dependencies": {
+    "express": "3.4.x",
+    "consolidate": "0.10.x",
+    "handlebars": "2.0.0-alpha.2",
+    "moment": "2.5.x",
+    "nedb": "0.10.x",
+    "q": "1.0.x",
+    "passport": "0.2.x",
+    "passport-local": "1.0.x",
+    "connect-flash": "^0.1.x",
+    "marked": "^0.3.2",
+    "commander": "^2.2.0",
+    "fs-extra": "^0.9.1",
+    "configure": "0.0.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.5.6",
+    "gulp-livereload": "^1.2.0",
+    "gulp-less": "^1.2.3",
+    "gulp-nodemon": "^1.0.2",
+    "gulp-concat": "^2.2.0",
+    "gulp-rename": "^1.2.0",
+    "gulp-uglify": "^0.3.0",
+    "gulp-clean": "^0.3.0"
+  },
+  "engines": {
+    "node": ">=0.10.26"
+  },
+  "os": ["linux"],
+  "preferGlobal": "true"
+}

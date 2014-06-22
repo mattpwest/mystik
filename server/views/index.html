@@ -1,0 +1,29 @@
+{{> top}}
+    {{#if flash}}
+        <div class="alert alert-info">
+            {{flash}}
+        </div>
+    {{/if}}
+
+    <article class="container-fluid content">
+        <h1>{{title}}
+            {{#if currentUser}}
+                <a href="{{path}}/edit" class="btn btn-primary btn-sm">Edit</a>
+                <a href="{{path}}/delete" class="btn btn-danger btn-sm">Delete</a>
+            {{/if}}
+        </h1>
+
+        
+        {{{content}}}
+
+        {{#if author}}
+            <p>
+                Posted by 
+                    <a href="/users/{{author._id}}">
+                        {{author.firstname}} {{author.lastname}}
+                    </a>
+                 on {{timestamp}}
+            </p>
+        {{/if}}
+    </article>
+{{> bottom}}
