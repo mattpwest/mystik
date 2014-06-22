@@ -9,11 +9,11 @@
   ],
   "bugs": {
     "url": "https://trello.com/b/ozVTEkDw/mystik-cms",
-    "email": "matt@chaotik.co.za"
+    "email": "mattpwest@gmail.com"
   },
   "author": {
     "name": "Matt Van Der Westhuizen",
-    "email": "matt@chaotik.co.za"
+    "email": "mattpwest@gmail.com"
   },
   "bin": "./cli.js",
   "repository": {
@@ -33,9 +33,7 @@
     "marked": "^0.3.2",
     "commander": "^2.2.0",
     "fs-extra": "^0.9.1",
-    "configure": "0.0.1"
-  },
-  "devDependencies": {
+    "configure": "0.0.1",
     "gulp": "^3.5.6",
     "gulp-livereload": "^1.2.0",
     "gulp-less": "^1.2.3",
@@ -44,6 +42,8 @@
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^0.3.0",
     "gulp-clean": "^0.3.0"
+  },
+  "devDependencies": {
   },
   "engines": {
     "node": ">=0.10.26"

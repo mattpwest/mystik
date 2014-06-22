@@ -1,10 +1,14 @@
+#!/bin/sh
+':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
+// Above magic copied from: http://unix.stackexchange.com/questions/65235/universal-node-js-shebang 
+
 var program = require('commander'),
     gulpfile = require('./gulpfile.js'),
     fs = require('fs-extra'),
     path = require('path');
 
 program
-    .version('0.1.0')
+    .version('0.1.0-alpha.1')
     .option('-c, --create [folder]', 'Creates a new CMS instance in the specified folder.')
     .option('-d, --development', 'Development mode.')
     .parse(process.argv);
