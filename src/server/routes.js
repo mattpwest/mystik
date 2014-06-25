@@ -4,15 +4,16 @@ var marked = require('marked'),
 
 var navigation = [];
 
-module.exports = function(app, passport, db) {
-    updateNavigation(db);
+// TODO: Should return a promise
+module.exports = function(mystik) {
+    updateNavigation(mystik.db);
 
-    app.get('/*', function(req, res) {
-        handleGET(req, res, db);
+    mystik.server.get('/*', function(req, res) {
+        handleGET(req, res, mystik.db);
     });
 
-    app.post('/login',
-        passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}),
+    mystik.server.post('/login',
+        mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}),
         function(req, res) {
             if (req.body.path !== undefined) {
                 res.redirect(req.body.path);
@@ -21,8 +22,8 @@ module.exports = function(app, passport, db) {
             }
         });
 
-    app.post('/*', function(req, res) {
-        handlePOST(req, res, db);
+    mystik.server.post('/*', function(req, res) {
+        handlePOST(req, res, mystik.db);
     });
 };
 
@@ -42,7 +43,7 @@ function handleGET(req, res, db) {
 
     // Handle special URLs
     var actionStr = path[path.length - 1],
-        action = undefined;
+        action;
 
     if (actionStr === 'login') {
         action = renderLogin;
@@ -80,7 +81,7 @@ function handlePOST(req, res, db) {
 
     // Handle special URLs
     var actionStr = path[path.length - 1],
-        action = undefined;
+        action;
 
     if (actionStr === 'save') {
         path = path.slice(0, path.length - 1);
@@ -114,14 +115,14 @@ function handlePOST(req, res, db) {
         }
 
         db.nodes.findOne({path: path}, function(err, parentNode) {
-            if (err != null) {
+            if (err !== null) {
                 console.log('Error while finding parent node ' + path + ' to add child to: ', err);
                 errorInternal(req, res, err);
                 return;
             }
 
             if (parentNode === null) {
-                errorInternal(req, res, 'Could not find parent node ' + path + ' to add child to...')
+                errorInternal(req, res, 'Could not find parent node ' + path + ' to add child to...');
                 return;
             }
 
@@ -203,7 +204,7 @@ function renderCreate(path, req, res, db) {
             return;
         }
 
-        if (parentNode == null) {
+        if (parentNode === null) {
             errorPageNotFound(req, res);
             return;
         }
@@ -224,14 +225,14 @@ function renderEdit(path, req, res, db) {
             return;
         }
 
-        if (node == null) {
+        if (node === null) {
             errorPageNotFound(req, res);
             return;
         }
 
         db.nodes.findOne({_id: node.parent_id}, function(err, parent) {
             res.render('edit', buildModelForEditOrCreate(node, parent, req));
-        })
+        });
     });
 }
 
@@ -260,7 +261,7 @@ function renderDelete(path, req, res, db) {
             if (numRemoved === 1) {
                 req.flash('flash', 'Deleted ' + path + '.');
             } else {
-                req.flash('flash', 'Failed to delete: ' + path + ' not found...')
+                req.flash('flash', 'Failed to delete: ' + path + ' not found...');
             }
             res.redirect('/');
         });
@@ -329,13 +330,14 @@ function buildModelForEditOrCreate(node, parentNode, req) {
         parentId = parentNode._id;
     }
 
-    if (node != null) { // edit
+    var model = {};
+    if (node !== null) { // edit
         var path = node.path;
         if (node.path === '/') { // Special case to make edit / login links from root work
             path = '';
         }
 
-        var model = {
+        model = {
             currentUser: req.user,
             title: node.title,
             basePath: basePath,
@@ -346,10 +348,8 @@ function buildModelForEditOrCreate(node, parentNode, req) {
             flash: req.flash('flash'),
             navigation: navigation
         };
-
-        return model;
     } else { // create
-        var model = {
+        model = {
             currentUser: req.user,
             title: '',
             basePath: basePath,
@@ -361,14 +361,15 @@ function buildModelForEditOrCreate(node, parentNode, req) {
             navigation: navigation
         };
 
-        return model;
     }
+
+    return model;
 }
 
 function updateNavigation(db) {
     navigation = [];
     db.nodes.findOne({path: '/'}, function(err, rootNode) {
-        if (rootNode != null) {
+        if (rootNode !== null) {
             navigation.push(rootNode);
 
             db.nodes.find({parent_id: rootNode._id}, function(err, nodes) {

@@ -1,6 +1,6 @@
 {
   "name": "mystik",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Mystik CMS is a simple, light-weight content management system aimed at getting small websites up and running as quickly and easily as possible.",
   "license": "MIT",
   "keywords": [
@@ -26,7 +26,7 @@
     "handlebars": "2.0.0-alpha.2",
     "moment": "2.5.x",
     "nedb": "0.10.x",
-    "q": "1.0.x",
+    "q": "^1.0.1",
     "passport": "0.2.x",
     "passport-local": "1.0.x",
     "connect-flash": "^0.1.x",
@@ -41,13 +41,16 @@
     "gulp-concat": "^2.2.0",
     "gulp-rename": "^1.2.0",
     "gulp-uglify": "^0.3.0",
-    "gulp-clean": "^0.3.0"
+    "gulp-clean": "^0.3.0",
+    "gulp-jshint": "^1.6.3",
+    "jshint-stylish": "^0.2.0"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "engines": {
     "node": ">=0.10.26"
   },
-  "os": ["linux"],
+  "os": [
+    "linux"
+  ],
   "preferGlobal": "true"
 }

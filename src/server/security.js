@@ -1,13 +1,14 @@
 var LocalStrategy = require('passport-local').Strategy;
 
-module.exports = function(passport, db) {
-    passport.use('local-login',
+// TODO: Should return a promise
+module.exports = function(mystik) {
+    mystik.passport.use('local-login',
             new LocalStrategy({
                     usernameField: 'email',
                     passwordField: 'password',
                     passReqToCallback: true
                 }, function(req, username, password, done) {
-        db.users.findOne({email: username}, function(err, user) {
+        mystik.db.users.findOne({email: username}, function(err, user) {
             if (err) {
                 console.log('Failed to authenticate due to DB error: ', err);
                 return done(err, req.flash('loginMessage', 'Unable to login due to database error.'));
@@ -27,12 +28,12 @@ module.exports = function(passport, db) {
         });
     }));
 
-    passport.serializeUser(function(user, done) {
+    mystik.passport.serializeUser(function(user, done) {
         done(null, user._id);
     });
 
-    passport.deserializeUser(function(id, done) {
-        db.users.findOne({_id: id}, function(err, user) {
+    mystik.passport.deserializeUser(function(id, done) {
+        mystik.db.users.findOne({_id: id}, function(err, user) {
             if (err) {
                 done(err);
             }

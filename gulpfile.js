@@ -7,7 +7,9 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     rename = require('gulp-rename'),
     uglify = require('gulp-uglify'),
-    clean = require('gulp-clean');
+    clean = require('gulp-clean'),
+    jshint = require('gulp-jshint'),
+    stylish = require('jshint-stylish');
 
 var wrkDir = process.cwd(),
     srcDir = path.dirname(process.mainModule.filename);
@@ -22,6 +24,12 @@ var paths = {
             path.join(wrkDir, 'stylesheets', '*.less'),
             path.join(wrkDir, 'libs', 'bootstrap-3.1.1', 'less', 'bootstrap.less')
         ],
+        server: [
+            path.join(srcDir, 'cli.js'),
+            path.join(srcDir, 'gulpfile.js'),
+            path.join(srcDir, 'server.js'),
+            path.join(srcDir, 'src', '**', '*.js')
+        ]
     },
     output: {
         fonts: path.join(wrkDir, 'static', 'fonts'),
@@ -29,7 +37,7 @@ var paths = {
         less: path.join(wrkDir, 'static', 'css')
     },
     src: srcDir
-}
+};
 
 gulp.task('clean', function() {
     gulp.src([paths.output.fonts, paths.output.js, paths.output.less], {read: false})
@@ -44,11 +52,19 @@ gulp.task('less', function() {
 
 gulp.task('scripts', function() {
     gulp.src(paths.input.js)
+      .pipe(jshint())
+      .pipe(jshint.reporter(stylish))
       .pipe(concat('bootstrap.all.js'))
       .pipe(gulp.dest(paths.output.js))
       .pipe(uglify())
       .pipe(rename('bootstrap.min.js'))
       .pipe(gulp.dest(paths.output.js));
+});
+
+gulp.task('server-scripts', function() {
+    gulp.src(paths.input.server)
+      .pipe(jshint())
+      .pipe(jshint.reporter(stylish));
 });
 
 gulp.task('copy', function() {
@@ -67,7 +83,14 @@ gulp.task('watch', function() {
     gulp.watch(paths.input.less, ['less']);
 });
 
-gulp.task('develop', ['copy', 'scripts', 'less', 'watch'], function () {
+gulp.task('develop', ['copy', 'server-scripts', 'scripts', 'less', 'watch'], function () {
+    var mainScript = path.join(paths.src, 'server.js');
+    nodemon({ script: mainScript, ext: 'html js', ignore: ['ignored.js'] })
+        .on('change', [])
+        .on('restart', []); // TODO: Figure out how to trigger a livereload here...
+});
+
+gulp.task('theming', ['copy', 'scripts', 'less', 'watch'], function () {
     var mainScript = path.join(paths.src, 'server.js');
     nodemon({ script: mainScript, ext: 'html js', ignore: ['ignored.js'] })
         .on('change', [])

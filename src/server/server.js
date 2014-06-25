@@ -1,10 +1,10 @@
-var config = require('configure'),
-    express = require('express'),
+var express = require('express'),
     consolidate = require('consolidate'),
     flash = require('connect-flash'),
     path = require('path');
 
-module.exports = function(config, passport) {
+// TODO: Should return a promise
+module.exports = function(mystik) {
     var app = express();
 
     // Compress static content
@@ -21,8 +21,8 @@ module.exports = function(config, passport) {
     // Setup security middleware
     app.use(express.cookieParser());
     app.use(express.session({secret: 'jwnmoiw90kwqln0qkwetr8re9wlq0ree1', cookie: {maxAge: 15 * 60 * 1000}}));
-    app.use(passport.initialize());
-    app.use(passport.session());
+    app.use(mystik.passport.initialize());
+    app.use(mystik.passport.session());
 
     // Enable functionality to put flash messages in the session
     app.use(flash());
@@ -30,7 +30,7 @@ module.exports = function(config, passport) {
     // Use Handlebars as templating engine
     app.engine('html', consolidate.handlebars);
     app.set('view engine', 'html');
-    app.set('views', path.join(process.cwd(), 'templates'));
+    app.set('views', path.join(process.cwd(), 'themes', mystik.settings.theme, 'templates'));
 
-    return app;
+    mystik.server = app;
 };

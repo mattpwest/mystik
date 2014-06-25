@@ -8,9 +8,10 @@ var program = require('commander'),
     path = require('path');
 
 program
-    .version('0.1.0-alpha.1')
+    .version('0.1.0-alpha.2')
     .option('-c, --create [folder]', 'Creates a new CMS instance in the specified folder.')
     .option('-d, --development', 'Development mode.')
+    .option('-t, --theming', 'Theming mode.')
     .parse(process.argv);
 
 var workingDir = process.cwd(),
@@ -33,21 +34,17 @@ if (program.create) {
             process.exit(-1);
         }
 
-        var toPath = path.join(targetDir, 'static');
-        console.log('\tCopying static files to %s ...', toPath);
-        fs.copy(path.join(sourceDir, 'static'), toPath);
+        toPath = path.join(targetDir, 'themes', 'default');
+        console.log('\tCopying default theme to %s ...', toPath);
+        fs.copy(path.join(sourceDir, 'src', 'themes', 'default'), toPath);
 
-        toPath = path.join(targetDir, 'templates');
-        console.log('\tCopying templates to %s ...', toPath);
-        fs.copy(path.join(sourceDir, 'server', 'views'), toPath);
-
-        toPath = path.join(targetDir, 'libs');
+        /*toPath = path.join(targetDir, 'libs');
         console.log('\tCopying client-side libraries to %s ...', toPath);
         fs.copy(path.join(sourceDir, 'client', 'bootstrap-3.1.1'), path.join(toPath, 'bootstrap-3.1.1'));
 
         toPath = path.join(targetDir, 'stylesheets');
         console.log('\tCopying stylesheets to %s ...', toPath);
-        fs.copy(path.join(sourceDir, 'client', 'less'), toPath);
+        fs.copy(path.join(sourceDir, 'client', 'less'), toPath);*/
 
         toPath = path.join(targetDir, 'config.json');
         console.log('\tCopying default config to %s ...', toPath);
@@ -66,6 +63,13 @@ if (!dirContainsCMS(workingDir)) {
 
 if (program.development) {
     gulpfile.start('develop', function(err) {
+        if (err) {
+            console.log(err);
+            process.exit(-1);
+        }
+    });
+} else if (program.theming) {
+    gulpfile.start('theming', function(err) {
         if (err) {
             console.log(err);
             process.exit(-1);

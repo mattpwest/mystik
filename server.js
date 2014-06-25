@@ -1,20 +1,39 @@
-var config = require('configure'),
-    console = require('console'),
-    passport = require('passport'),
-    handlebars = require('handlebars');
+var console = require('console'),
+    Q = require('q');
 
-var db = require('./server/src/db.js')(config),
-    templates = require('./server/src/templates.js')(config, handlebars),
-    security = require('./server/src/security.js')(passport, db),
-    server = require('./server/src/server.js')(config, passport),
-    routes = require('./server/src/routes.js')(server, passport, db);
+var mystik = {
+    config: require('configure'),
+    db: {},
+    handlebars: require('handlebars'),
+    passport: require('passport'),
+    server: null,
+    serverInstance: null,
+    settings: null,
+};
 
-startServer(server);
-
-function startServer(server) {
-    var instance = server.listen(config.port, function() {
-    	console.log('Mystik CMS started - listening on port %d', instance.address().port);
+// TODO: Will only work if all of these return promises
+require('./src/server/db.js')(mystik)
+ .then(require('./src/server/templates.js'))
+ .then(require('./src/server/security.js'))
+ .then(function(result) {
+    console.log('Mystik server initialisation completed!');
+ }, function(err) {
+    console.error(err);
+}).done();
+ /*
+ 
+ .then(require('./src/server/server.js')(mystik))
+ .then(require('./src/server/routes.js')(mystik))
+ .then(function startMystikServer() {
+    mystik.serverInstance = mystik.server.listen(mystik.config.port, function() {
+        console.log('Mystik CMS started - listening on port %d', instance.address().port);
     });
-
-    module.exports = instance;
-}
+ })
+ .catch(function(err) {
+    if (err !== null) {
+        console.log('Failed to start Mystik CMS due to: ', err);
+        system.exit(-1);
+    }
+ });
+*/
+module.exports = mystik;
