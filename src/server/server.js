@@ -1,11 +1,13 @@
 var express = require('express'),
     consolidate = require('consolidate'),
     flash = require('connect-flash'),
-    path = require('path');
+    path = require('path'),
+    Q = require('q');
 
-// TODO: Should return a promise
 module.exports = function(mystik) {
+    var deferred = Q.defer();
     var app = express();
+    console.log('Configuring Express...');
 
     // Compress static content
     app.use(express.compress());
@@ -33,4 +35,8 @@ module.exports = function(mystik) {
     app.set('views', path.join(process.cwd(), 'themes', mystik.settings.theme, 'templates'));
 
     mystik.server = app;
+
+    deferred.resolve(mystik);
+
+    return deferred.promise;
 };

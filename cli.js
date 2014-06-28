@@ -38,6 +38,10 @@ if (program.create) {
         console.log('\tCopying default theme to %s ...', toPath);
         fs.copy(path.join(sourceDir, 'src', 'themes', 'default'), toPath);
 
+        toPath = path.join(targetDir, 'static', 'images');
+        console.log('\tCreating static content folder at %s ...', toPath);
+        fs.mkdirs(toPath);
+
         /*toPath = path.join(targetDir, 'libs');
         console.log('\tCopying client-side libraries to %s ...', toPath);
         fs.copy(path.join(sourceDir, 'client', 'bootstrap-3.1.1'), path.join(toPath, 'bootstrap-3.1.1'));

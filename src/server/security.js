@@ -1,32 +1,38 @@
-var LocalStrategy = require('passport-local').Strategy;
+var LocalStrategy = require('passport-local').Strategy,
+    Q = require('q');
 
-// TODO: Should return a promise
 module.exports = function(mystik) {
+    var deferred = Q.defer();
+
+    console.log('Configuring security...');
+
     mystik.passport.use('local-login',
-            new LocalStrategy({
-                    usernameField: 'email',
-                    passwordField: 'password',
-                    passReqToCallback: true
-                }, function(req, username, password, done) {
-        mystik.db.users.findOne({email: username}, function(err, user) {
-            if (err) {
-                console.log('Failed to authenticate due to DB error: ', err);
-                return done(err, req.flash('loginMessage', 'Unable to login due to database error.'));
-            }
+        new LocalStrategy({
+                usernameField: 'email',
+                passwordField: 'password',
+                passReqToCallback: true
+                },
+                function(req, username, password, done) {
+                    mystik.db.users.findOne({email: username}, function(err, user) {
+                        if (err) {
+                            console.log('Failed to authenticate due to DB error: ', err);
+                            return done(err, req.flash('loginMessage', 'Unable to login due to database error.'));
+                        }
 
-            if (!user) {
-                console.log('Failed to authenticate: no such user ', username);
-                return done(null, false, req.flash('loginMessage', 'User not found.'));
-            }
+                        if (!user) {
+                            console.log('Failed to authenticate: no such user ', username);
+                            return done(null, false, req.flash('loginMessage', 'User not found.'));
+                        }
 
-            if (user.password !== password) {
-                console.log('Failed to authenticate ', username, ': incorrect password.');
-                return done(null, false, req.flash('loginMessage', 'Incorrect password.'));
-            }
+                        if (user.password !== password) {
+                            console.log('Failed to authenticate ', username, ': incorrect password.');
+                            return done(null, false, req.flash('loginMessage', 'Incorrect password.'));
+                        }
 
-            return done(null, user);
-        });
-    }));
+                        return done(null, user);
+                    });
+                })
+    );
 
     mystik.passport.serializeUser(function(user, done) {
         done(null, user._id);
@@ -45,4 +51,8 @@ module.exports = function(mystik) {
             done(null, user);
         });
     });
+
+    deferred.resolve(mystik);
+
+    return deferred.promise;
 };

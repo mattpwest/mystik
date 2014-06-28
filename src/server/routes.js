@@ -1,11 +1,14 @@
 var marked = require('marked'),
     moment = require('moment'),
-    url = require('url');
+    url = require('url'),
+    Q = require('q');
 
 var navigation = [];
 
-// TODO: Should return a promise
 module.exports = function(mystik) {
+    var deferred = Q.defer();
+    console.log('Configuring routes...');
+
     updateNavigation(mystik.db);
 
     mystik.server.get('/*', function(req, res) {
@@ -25,6 +28,9 @@ module.exports = function(mystik) {
     mystik.server.post('/*', function(req, res) {
         handlePOST(req, res, mystik.db);
     });
+
+    deferred.resolve(mystik);
+    return deferred.promise;
 };
 
 function handleGET(req, res, db) {
