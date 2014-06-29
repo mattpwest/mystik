@@ -9,64 +9,94 @@ var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     clean = require('gulp-clean'),
     jshint = require('gulp-jshint'),
-    stylish = require('jshint-stylish');
+    stylish = require('jshint-stylish'),
+    bower = require('gulp-bower'),
+    bowerFiles = require('gulp-bower-files'),
+    filter = require('gulp-filter'),
+    flatten = require('gulp-flatten'),
+    tap = require('gulp-tap'),
+    minifyCSS = require('gulp-minify-css');
 
 var wrkDir = process.cwd(),
     srcDir = path.dirname(process.mainModule.filename);
 
-var paths = {
-    input: {
-        fonts: path.join(wrkDir, 'libs', 'bootstrap-3.1.1', 'fonts', '*'),
-        js: [
-            path.join(wrkDir, 'libs', 'bootstrap-3.1.1', 'js', '*.js')
-        ],
-        less: [
-            path.join(wrkDir, 'stylesheets', '*.less'),
-            path.join(wrkDir, 'libs', 'bootstrap-3.1.1', 'less', 'bootstrap.less')
-        ],
-        server: [
-            path.join(srcDir, 'cli.js'),
-            path.join(srcDir, 'gulpfile.js'),
-            path.join(srcDir, 'server.js'),
-            path.join(srcDir, 'src', '**', '*.js')
-        ]
-    },
-    output: {
-        fonts: path.join(wrkDir, 'static', 'fonts'),
-        js: path.join(wrkDir, 'static', 'js'),
-        less: path.join(wrkDir, 'static', 'css')
-    },
-    src: srcDir
+var libraries = {
+    css: [],
+    js: [],
 };
 
-gulp.task('clean', function() {
-    gulp.src([paths.output.fonts, paths.output.js, paths.output.less], {read: false})
-        .pipe(clean());
+gulp.task('bower', function() {
+    return bower()
+            .pipe(gulp.dest(path.join(wrkDir, 'bower_components')));
+});
+
+gulp.task('copyBowerFiles', ['bower'], function() {
+    var cssFilter = filter('**/*.css'),
+        jsFilter = filter('**/*.js'),
+        fontsFilter = filter('**/fonts/*');
+
+    return bowerFiles()
+            .pipe(cssFilter)
+            .pipe(tap(function(file, t) {
+                libraries.css.push(file.path);
+            }))
+            .pipe(cssFilter.restore())
+
+            .pipe(jsFilter)
+            .pipe(tap(function(file, t) {
+                libraries.js.push(file.path);
+            }))
+            .pipe(jsFilter.restore())
+
+            .pipe(fontsFilter)
+            .pipe(flatten())
+            .pipe(gulp.dest(path.join(wrkDir, 'static', 'fonts')));
 });
 
 gulp.task('less', function() {
-    gulp.src(paths.input.less)
+    return gulp.src(path.join(wrkDir, 'less', 'main.less'))
         .pipe(less())
-        .pipe(gulp.dest(paths.output.less));
+        .pipe(gulp.dest(path.join(wrkDir, 'tmp')));
 });
 
-gulp.task('scripts', function() {
-    gulp.src(paths.input.js)
-      .pipe(jshint())
-      .pipe(jshint.reporter(stylish))
-      .pipe(concat('bootstrap.all.js'))
-      .pipe(gulp.dest(paths.output.js))
+gulp.task('css', ['copyBowerFiles', 'less'], function() {
+    libraries.css.push(path.join(wrkDir, 'tmp', 'main.css'));
+
+    return gulp.src(libraries.css)
+        .pipe(concat('main.css'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'css')))
+        .pipe(minifyCSS())
+        .pipe(rename('main.min.css'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'css')));
+});
+
+gulp.task('jsCheck', function() {
+    return gulp.src(path.join(wrkDir, 'js', 'main.js'))
+        .pipe(jshint())
+        .pipe(jshint.reporter(stylish));
+})
+
+gulp.task('js', ['copyBowerFiles', 'jsCheck'], function() {
+    libraries.js.push(path.join(wrkDir, 'js', 'main.js'));
+
+    gulp.src(libraries.js)
+      .pipe(concat('main.js'))
+      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
       .pipe(uglify())
-      .pipe(rename('bootstrap.min.js'))
-      .pipe(gulp.dest(paths.output.js));
+      .pipe(rename('main.min.js'))
+      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')));
 });
 
 gulp.task('server-scripts', function() {
-    gulp.src(paths.input.server)
+    gulp.src([path.join(srcDir, 'cli.js'),
+                path.join(srcDir, 'gulpfile.js'),
+                path.join(srcDir, 'server.js'),
+                path.join(srcDir, 'src', '**', '*.js')])
       .pipe(jshint())
       .pipe(jshint.reporter(stylish));
 });
 
+/*
 gulp.task('copy', function() {
     gulp.src(paths.input.fonts)
         .pipe(gulp.dest(paths.output.fonts));
@@ -82,16 +112,21 @@ gulp.task('watch', function() {
 
     gulp.watch(paths.input.less, ['less']);
 });
+*/
 
-gulp.task('develop', ['copy', 'server-scripts', 'scripts', 'less', 'watch'], function () {
-    var mainScript = path.join(paths.src, 'server.js');
+//gulp.task('develop', ['copy', 'server-scripts', 'scripts', 'less', 'watch'], function () {
+gulp.task('develop', ['server-scripts'], function () {
+    var mainScript = path.join(srcDir, 'server.js');
+
     nodemon({ script: mainScript, ext: 'html js', ignore: ['ignored.js'] })
         .on('change', [])
         .on('restart', []); // TODO: Figure out how to trigger a livereload here...
 });
 
-gulp.task('theming', ['copy', 'scripts', 'less', 'watch'], function () {
-    var mainScript = path.join(paths.src, 'server.js');
+//gulp.task('theming', ['copy', 'scripts', 'less', 'watch'], function () {
+gulp.task('theming', ['css', 'js'], function () {
+    var mainScript = path.join(srcDir, 'server.js');
+
     nodemon({ script: mainScript, ext: 'html js', ignore: ['ignored.js'] })
         .on('change', [])
         .on('restart', []); // TODO: Figure out how to trigger a livereload here...

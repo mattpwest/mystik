@@ -18,8 +18,8 @@ module.exports = function registerPartials(mystik) {
 };
 
 function loadPartialsForTheme(handlebars, theme) {
-    var partialsDir = path.join(process.cwd(), 'themes', theme, 'templates', 'partials');
-    console.log('Loading partials for theme "%s" from %s', theme, partialsDir);
+    var partialsDir = path.join(process.cwd(), 'templates', 'partials');
+    console.log('Loading partials from %s', partialsDir);
 
     return findFilesInPath(partialsDir)
         .then(function(files) {

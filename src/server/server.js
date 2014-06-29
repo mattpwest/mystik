@@ -32,7 +32,7 @@ module.exports = function(mystik) {
     // Use Handlebars as templating engine
     app.engine('html', consolidate.handlebars);
     app.set('view engine', 'html');
-    app.set('views', path.join(process.cwd(), 'themes', mystik.settings.theme, 'templates'));
+    app.set('views', path.join(process.cwd(), 'templates'));
 
     mystik.server = app;
 

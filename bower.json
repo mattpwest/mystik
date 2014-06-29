@@ -1,0 +1,21 @@
+{
+  "name": "mystik",
+  "version": "0.1.0",
+  "homepage": "https://github.com/mattpwest/mystik",
+  "authors": [
+    "Matt Van Der Westhuizen <mattpwest@gmail.com>"
+  ],
+  "description": "Mystik CMS client-side dependencies.",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.2.0"
+  }
+}

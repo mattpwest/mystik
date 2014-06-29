@@ -27,33 +27,29 @@ if (program.create) {
 
     console.log('Creating new CMS instance ...');
 
-    console.log('\tCleaning source static folder ...');
-    gulpfile.start('clean', function(err) {
-        if (err) {
-            console.log('\t\tError: %s', err);
-            process.exit(-1);
-        }
+    toPath = path.join(targetDir, 'static', 'images');
+    console.log('\tCreating static content folder at %s ...', toPath);
+    fs.mkdirs(toPath);
 
-        toPath = path.join(targetDir, 'themes', 'default');
-        console.log('\tCopying default theme to %s ...', toPath);
-        fs.copy(path.join(sourceDir, 'src', 'themes', 'default'), toPath);
+    toPath = path.join(targetDir, 'templates');
+    console.log('\tCopying templates to %s ...', toPath);
+    fs.copy(path.join(sourceDir, 'src', 'instance', 'templates'), toPath);
 
-        toPath = path.join(targetDir, 'static', 'images');
-        console.log('\tCreating static content folder at %s ...', toPath);
-        fs.mkdirs(toPath);
+    toPath = path.join(targetDir, 'less');
+    console.log('\tCopying less to %s ...', toPath);
+    fs.copy(path.join(sourceDir, 'src', 'instance', 'less'), toPath);
 
-        /*toPath = path.join(targetDir, 'libs');
-        console.log('\tCopying client-side libraries to %s ...', toPath);
-        fs.copy(path.join(sourceDir, 'client', 'bootstrap-3.1.1'), path.join(toPath, 'bootstrap-3.1.1'));
+    toPath = path.join(targetDir, 'js');
+    console.log('\tCopying js to %s ...', toPath);
+    fs.copy(path.join(sourceDir, 'src', 'instance', 'js'), toPath);
 
-        toPath = path.join(targetDir, 'stylesheets');
-        console.log('\tCopying stylesheets to %s ...', toPath);
-        fs.copy(path.join(sourceDir, 'client', 'less'), toPath);*/
+    toPath = path.join(targetDir, 'config.json');
+    console.log('\tCopying default config to %s ...', toPath);
+    fs.copy(path.join(sourceDir, 'config.json'), toPath);
 
-        toPath = path.join(targetDir, 'config.json');
-        console.log('\tCopying default config to %s ...', toPath);
-        fs.copy(path.join(sourceDir, 'config.json'), toPath);
-    });
+    toPath = path.join(targetDir, 'bower.json');
+    console.log('\tCopying Bower config to %s ...', toPath);
+    fs.copy(path.join(sourceDir, 'bower.json'), toPath);
 
     return;
 }
