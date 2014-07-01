@@ -23,10 +23,10 @@ You can create a new website from the console as follows:
     mystik -c /opt/mysite
 
 ### Theming
-Once you have created a site you should run it in development mode for customisation:
+Once you have created a site you should run it in theming mode for customisation:
 
     cd /opt/mysite
-    mystik -d
+    mystik -t
 
 While in development mode:
 * JavaScript is automatically linted and uglified every time you change it
@@ -43,6 +43,11 @@ Once the site is ready and you want to run it without all the development niceti
     mystik
 
 I'll add a CLI commands for creating Linux service start-up scripts soon...
+
+## Version History
+
+* 0.1.0-alpha.2: Added Bower. Replaced LiveReload with BrowserSync. Started using Q promises.
+* 0.1.0-alpha.1: Initial release.
 
 ## Roadmap
 You can view the current TODO list on the [Trello board](https://trello.com/b/ozVTEkDw/mystik-cms).
