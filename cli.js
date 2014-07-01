@@ -10,7 +10,6 @@ var program = require('commander'),
 program
     .version('0.1.0-alpha.2')
     .option('-c, --create [folder]', 'Creates a new CMS instance in the specified folder.')
-    .option('-d, --development', 'Development mode.')
     .option('-t, --theming', 'Theming mode.')
     .parse(process.argv);
 
@@ -61,14 +60,7 @@ if (!dirContainsCMS(workingDir)) {
     program.help();
 }
 
-if (program.development) {
-    gulpfile.start('develop', function(err) {
-        if (err) {
-            console.log(err);
-            process.exit(-1);
-        }
-    });
-} else if (program.theming) {
+if (program.theming) {
     gulpfile.start('theming', function(err) {
         if (err) {
             console.log(err);
