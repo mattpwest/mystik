@@ -1,4 +1,4 @@
-# Mystik CMS [![NPM version][npm-image]][npm-url] [![Dependency Status][daviddm-url]][daviddm-image]
+# Mystik CMS
 ## Introduction
 Mystik CMS is a simple, light-weight CMS written in Node.js. It is aimed at small websites that don't update their content that often (this is typical for many small businesses in my experience). So instead of focusing on making an extremely user-friendly editing interface, this CMS focuses on making life as easy as possible for the website developer:
 * easy installation
