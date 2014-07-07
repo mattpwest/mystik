@@ -63,5 +63,6 @@
   "engines": {
     "node": ">=0.10.26"
   },
-  "preferGlobal": "true"
+  "preferGlobal": "true",
+  "os" : [ "!win32" ]
 }
