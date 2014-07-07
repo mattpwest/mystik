@@ -95,12 +95,12 @@ gulp.task('js', ['jsCheck'], function() {
 });
 
 gulp.task('server-scripts', function() {
-    gulp.src([path.join(srcDir, 'cli.js'),
-                path.join(srcDir, 'gulpfile.js'),
-                path.join(srcDir, 'server.js'),
-                path.join(srcDir, 'src', '**', '*.js')])
-      .pipe(jshint())
-      .pipe(jshint.reporter(stylish));
+    gulp.src(['*.js', 'src/**/*.js'])
+        .pipe(tap(function(file, t) {
+            console.log('Linting %s', file.path);
+        }))
+        .pipe(jshint())
+        .pipe(jshint.reporter(stylish));
 });
 
 gulp.task('theming', ['css', 'js'], function () {

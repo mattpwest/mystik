@@ -14,7 +14,6 @@ var mystik = {
 require('./src/server/db.js')(mystik)
  .then(require('./src/server/templates.js'))
  .then(require('./src/server/security.js'))
- .then(require('./src/server/server.js'))
  .then(require('./src/server/routes.js'))
  .then(function(result) {
     mystik.serverInstance = mystik.server.listen(mystik.config.port, function() {
@@ -24,6 +23,7 @@ require('./src/server/db.js')(mystik)
  }, function(err) {
     if (err !== null) {
         console.log('Failed to start Mystik CMS due to: ', err);
-        system.exit(-1);
+        process.exit(-1);
     }
-}).done();
+ })
+ .done();
