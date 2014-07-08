@@ -68,22 +68,34 @@ module.exports = function(mystik) {
 
     // Routes
     app.use('/*', defaultRouter);
-    app.get('/*', handleGET);
 
-    app.post('/login', mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}), function(req, res) {
-        if (req.body.path !== undefined) {
-            res.redirect(req.body.path);
-        } else {
-            res.redirect('/');
-        }
-    });
+    app.route('/logout')
+        .get(handleLogout);
 
-    app.post('/*', handlePOST);
+    app.route('/*')
+        .get(handleGET);
+
+    app.route('/login')
+        .post(mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}), function(req, res) {
+            if (req.body.path !== undefined) {
+                res.redirect(req.body.path);
+            } else {
+                res.redirect('/');
+            }
+        });
+
+    app.route('/*')
+        .post(handlePOST);
 
     mystik.server = app;
     deferred.resolve(mystik);
     return deferred.promise;
 };
+
+function handleLogout(req, res) {
+    req.logout();
+    res.redirect('/');
+}
 
 function handleGET(req, res) {
     var reqPath = url.parse(req.url).pathname;
@@ -211,38 +223,38 @@ function handlePOST(req, res) {
 }
 
 function renderLogin(reqPath, req, res, db) {
-    res.render('login', {message: req.flash('loginMessage'), path: reqPath});
+    var node = null;
+
+    getNode(reqPath)
+        .then(function(targetNode) {
+            node = targetNode;
+            return node;
+        })
+        .then(getNodeAuthor)
+        .then(function(author) {
+            return buildModel(node, req, author);
+        })
+        .then(function(model) {
+            model.message = req.flash('loginMessage');
+            res.render('login', model);
+        });
 }
 
 function renderNode(reqPath, req, res, db) {
-    db.nodes.findOne({path: reqPath}, function(err, node) {
-        if (err !== null) {
-            errorInternal(req, res, err);
-            return;
-        }
+    var node = null;
 
-        if (node === null) {
-            errorPageNotFound(req, res);
-            return;
-        }
-
-        db.users.findOne({_id: node.author_id}, function(err, user) {
-            if (err !== null) {
-                errorInternal(req, res, err);
-                return;
-            }
-
-            if (user === null) {
-                errorUserNotFound(req, res);
-                return;
-            }
-
-            buildModel(node, req, user)
-                .then(function(model) {
-                    res.render('index', model);
-                });
+    getNode(reqPath)
+        .then(function(targetNode) {
+            node = targetNode;
+            return node;
+        })
+        .then(getNodeAuthor)
+        .then(function(author) {
+            return buildModel(node, req, author);
+        })
+        .then(function(model) {
+            res.render('index', model);
         });
-    });
 }
 
 function renderCreate(reqPath, req, res, db) {
@@ -486,6 +498,22 @@ function getChildNodes(node) {
             deferred.reject(new Error('Error finding child nodes of "' + node.path + '".'));
         } else {
             deferred.resolve(nodes);
+        }
+    });
+
+    return deferred.promise;
+}
+
+function getNodeAuthor(node) {
+    var deferred = Q.defer();
+
+    db.users.findOne({_id: node.author_id}, function(err, user) {
+        if (err !== null) {
+            deferred.reject(new Error('Failed to get author for node %s with error: %s', node.path, err));
+        } else if (user === null) {
+            deferred.reject(new Error('Failed to get author for node %s', node.path));
+        } else {
+            deferred.resolve(user);
         }
     });
 
