@@ -121,7 +121,8 @@ function loadOrCreateRootNode(db, defaultUser) {
                 body: '## Markdown Content\nThis is some nice *content* written in [Markdown](http://whatismarkdown.com/).\nThings that are awesome:\n1. NodeJS\n2. Games\n3. Websites\n',
                 comments: [{body: 'Test comment :)!', date: now, user_id: defaultUser._id}],
                 date: now,
-                status: 'published'
+                status: 'published',
+                type: 'home'
             }, function(err, newNode) {
                 if (err !== null) {
                     deferred.reject(new Error('Failed to create default root page: ' + err));

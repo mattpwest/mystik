@@ -77,9 +77,12 @@ module.exports = function(mystik) {
 
     app.route('/login')
         .post(mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}), function(req, res) {
-            if (req.body.path !== undefined) {
+            console.log('Handling login at %s', req.url);
+            if ((req.body.path !== undefined) && (req.body.path !== '')) {
+                console.log('Redirecting to: %s', req.body.path)
                 res.redirect(req.body.path);
             } else {
+                console.log('Redirecting to /');
                 res.redirect('/');
             }
         });
@@ -163,7 +166,7 @@ function handlePOST(req, res) {
         }
 
         db.nodes.update({path: reqPath},
-            {$set: {body: req.body.body, title: req.body.title, date: moment()}},
+            {$set: {body: req.body.body, title: req.body.title, type: req.body.type, date: moment()}},
             {}, // options
             function(err, numReplaced) {
                 if (err !== null) {
@@ -209,7 +212,8 @@ function handlePOST(req, res) {
                 body: req.body.body,
                 comments: [],
                 date: moment(),
-                status: 'published'
+                status: 'published',
+                type: req.body.type
             }, function(err, newNode) {
                 if (err !== null) {
                     errorInternal(req, res, err);
@@ -236,7 +240,7 @@ function renderLogin(reqPath, req, res, db) {
         })
         .then(function(model) {
             model.message = req.flash('loginMessage');
-            res.render('login', model);
+            res.render('admin/login', model);
         });
 }
 
@@ -253,7 +257,7 @@ function renderNode(reqPath, req, res, db) {
             return buildModel(node, req, author);
         })
         .then(function(model) {
-            res.render('index', model);
+            res.render('pages/' + model.type, model);
         });
 }
 
@@ -263,22 +267,23 @@ function renderCreate(reqPath, req, res, db) {
         return;
     }
 
-    db.nodes.findOne({path: reqPath}, function(err, parentNode) {
-        if (err !== null) {
-            errorInternal(req, res, err);
-            return;
-        }
+    var parentNode = null;
+    return getNode(reqPath)
+        .then(function(node) {
+            parentNode = node;
 
-        if (parentNode === null) {
-            errorPageNotFound(req, res);
-            return;
-        }
+            if (parentNode === null) {
+                errorPageNotFound(req, res);
+            }
 
-        buildModelForEditOrCreate(null, parentNode, req)
-            .then(function(model) {
-                res.render('create', model);
-            });
-    });
+            return buildModelForEditOrCreate(null, parentNode, req);
+        })
+        .then(function(model) {
+            res.render('admin/create', model);
+        }, function(err) {
+            console.log('Error rendering /create: %s', err);
+        })
+        .done();
 }
 
 function renderEdit(reqPath, req, res, db) {
@@ -304,7 +309,7 @@ function renderEdit(reqPath, req, res, db) {
             return buildModelForEditOrCreate(targetNode, parent, req);
         })
         .then(function(model) {
-            res.render('edit', model);
+            res.render('admin/edit', model);
         });
 }
 
@@ -385,7 +390,8 @@ function buildModel(node, req, author) {
                 title: node.title,
                 timestamp: moment(node.date).format("Do MMMM YYYY"),
                 flash: req.flash('flash'),
-                navigation: navigation
+                navigation: navigation,
+                type: node.type
             };
         });
 }
@@ -420,7 +426,8 @@ function buildModelForEditOrCreate(node, parentNode, req) {
                     body: node.body,
                     timestamp: moment(node.date).format("Do MMMM YYYY"),
                     flash: req.flash('flash'),
-                    navigation: navigation
+                    navigation: navigation,
+                    type: node.type
                 };
             });
     } else { // create
@@ -435,7 +442,8 @@ function buildModelForEditOrCreate(node, parentNode, req) {
                     body: '',
                     timestamp: moment().format("Do MMMM YYYY"),
                     flash: req.flash('flash'),
-                    navigation: navigation
+                    navigation: navigation,
+                    type: 'page'
                 };
             });
     }
