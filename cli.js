@@ -3,19 +3,17 @@
 // Above magic copied from: http://unix.stackexchange.com/questions/65235/universal-node-js-shebang 
 
 var program = require('commander'),
-    gulpfile = require('./gulpfile.js'),
     fs = require('fs-extra'),
     path = require('path');
 
 program
     .version('0.1.0-alpha.2')
     .option('-c, --create [folder]', 'Creates a new CMS instance in the specified folder.')
-    .option('-t, --theming', 'Theming mode.')
+    .option('-p, --production', 'Run the site in production mode (without any arguments it defaults to theming mode).')
     .parse(process.argv);
 
 var workingDir = process.cwd(),
     sourceDir = path.dirname(process.mainModule.filename);
-
 
 if (program.create) {
     var targetDir = program.create;
@@ -58,19 +56,14 @@ if (!dirContainsCMS(workingDir)) {
     console.log('');
     console.log('If the current folder is empty it should be safe to run this command with -c . to create a new instance in this folder.');
     program.help();
+    return;
 }
 
-if (program.theming) {
-    gulpfile.start('theming', function(err) {
-        if (err) {
-            console.log(err);
-            process.exit(-1);
-        }
-    });
+var gulpfile = require('./gulpfile.js');
+if (program.production) {
+    runInProductionMode();    
 } else {
-    var appModule = path.join(sourceDir, 'server.js');
-    console.log("APP_MODULE: %s", appModule);
-    require(path.join(sourceDir, 'server.js'));
+    runInThemingMode();
 }
 
 function dirContainsCMS(dir) {
@@ -81,4 +74,27 @@ function dirContainsCMS(dir) {
 function onCopyError(err) {
     console.log('\t\tCopy failed: ' + err);
     process.exit(-1);
+}
+
+function runInThemingMode() {
+    gulpfile.start('theming', function(err) {
+        if (err) {
+            console.log(err);
+            process.exit(-1);
+        }
+
+        console.log('Starting in theming mode...');
+    });
+}
+
+function runInProductionMode() {
+    gulpfile.start('build-all', function(err) {
+        if (err) {
+            console.log(err);
+            process.exit(-1);
+        }
+
+        var appModule = path.join(sourceDir, 'server.js');
+        require(path.join(sourceDir, 'server.js'));
+    });
 }

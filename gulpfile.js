@@ -13,7 +13,8 @@ var gulp = require('gulp'),
     flatten = require('gulp-flatten'),
     tap = require('gulp-tap'),
     minifyCSS = require('gulp-minify-css'),
-    browserSync = require('browser-sync');
+    browserSync = require('browser-sync'),
+    config = require('configure');
 
 var wrkDir = process.cwd(),
     srcDir = path.dirname(process.mainModule.filename);
@@ -103,13 +104,16 @@ gulp.task('server-scripts', function() {
         .pipe(jshint.reporter(stylish));
 });
 
-gulp.task('theming', ['css', 'js'], function () {
+gulp.task('build-all', ['css', 'js']);
+
+gulp.task('theming', ['build-all'], function () {
     var mainScript = path.join(srcDir, 'server.js');
     //liveReloadServer = livereload();
 
+    console.log('CONFIGPORT: %d', config.port);
     var server = require(path.join(srcDir, 'server.js'));
     browserSync.init(['templates/**/*.html'], {
-        proxy: 'localhost:9080'
+        proxy: 'localhost:' + config.port
     });
 
     libraries.js.push(path.join(wrkDir, 'js', 'main.js'));

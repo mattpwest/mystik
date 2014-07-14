@@ -10,9 +10,7 @@ var express = require('express'),
     moment = require('moment'),
     url = require('url'),
     path = require('path'),
-    Q = require('q'),
-    content = require('./middleware/content.js'),
-    navigation = require('./middleware/content.js');
+    Q = require('q');
 
 var db,
     navigation = [];

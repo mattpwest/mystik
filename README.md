@@ -26,26 +26,31 @@ You can create a new website from the console as follows:
 Once you have created a site you should run it in theming mode for customisation:
 
     cd /opt/mysite
-    mystik -t
+    mystik
 
 While in development mode:
 * JavaScript is automatically linted and uglified every time you change it
 * LESS files are automatically compiled to CSS every time you change them
-* You can use LiveReload to automatically reload the page every time something changes
+* [BrowserSync](http://www.browsersync.io/) will automatically reload the page every time something changes and mirror changes across multiple browsers / tabs
 
 The default administrative account is:
 * admin@chaotik.co.za
 * admin
 
 ### Production
-Once the site is ready and you want to run it without all the development niceties, you can simply run without the -d flag:
+Once the site is ready you can test it without all the theming mode niceties by running it with the production mode flag:
 
-    mystik
+    mystik -p
 
-I'll add a CLI commands for creating Linux service start-up scripts soon...
+Of course you shouldn't be starting your production instance by hand like this, so once you are ready for production you should generate a Linux service script with:
+
+    mystik -i serviceName
 
 ## Version History
 
+* 0.1.0-alpha.3:
+    * Changed theming mode to be the default.
+    * Added page types.
 * 0.1.0-alpha.2: Added Bower. Replaced LiveReload with BrowserSync. Started using Q promises.
 * 0.1.0-alpha.1: Initial release.
 
