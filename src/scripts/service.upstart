@@ -1,0 +1,11 @@
+#!upstart
+
+description "Mystik instance: {{instanceName}}"
+
+start on startup
+stop on shutdown
+
+script
+    chdir {{instanceDir}}
+    exec mystik -p
+end script

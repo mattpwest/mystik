@@ -44,7 +44,9 @@ Once the site is ready you can test it without all the theming mode niceties by 
 
 Of course you shouldn't be starting your production instance by hand like this, so once you are ready for production you should generate a Linux service script with:
 
-    mystik -i serviceName
+    mystik -i
+
+**Note:** *Currently this only works for Ubuntu based distributions that use Upstart for startup scripts. It also assumes the Node executable is called nodejs instead of node as is the case when installing from Apt.*
 
 ## Version History
 
@@ -98,6 +100,6 @@ Even so, developers won't use a CMS if it's not capable of scaling up when the n
 * Make it easy to create a cluster of front-end servers sharing a single DB instance (those 3 free gears from OpenShift for example).
 
 #### 6. Security
-A bit of a me-too goal, but then you don't want some script kiddie to replace your mom's website content with pornographic images or political slogans... software updates to Mystik should be easy to install as possible.
+A bit of a me-too goal, but then you don't want some script kiddie to replace your mom's website content with porn or political slogans... software updates to Mystik should be easy to install as possible.
 
 Should also see if we can automagically provide a self-signed SSL certificate to secure the editing and management pages of the site.
