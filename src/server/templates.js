@@ -5,7 +5,7 @@ var fs = require('fs'),
 // Views in the templateDir are loaded automatically by the templating engine,
 // but Handlebars partials must be registered manually
 module.exports = function registerPartials(mystik) {
-    return loadPartialsForTheme(mystik.handlebars, mystik.settings.theme)
+    return loadPartials(mystik.handlebars)
         .then(function(loadedPartials) {
             console.log('\tLoaded partials: ');
 
@@ -17,7 +17,7 @@ module.exports = function registerPartials(mystik) {
         });
 };
 
-function loadPartialsForTheme(handlebars, theme) {
+function loadPartials(handlebars) {
     var partialsDir = path.join(process.cwd(), 'templates', 'partials');
     console.log('Loading partials from %s', partialsDir);
 
