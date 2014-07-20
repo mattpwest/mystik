@@ -77,7 +77,7 @@ module.exports = function(mystik) {
         .post(mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}), function(req, res) {
             console.log('Handling login at %s', req.url);
             if ((req.body.path !== undefined) && (req.body.path !== '')) {
-                console.log('Redirecting to: %s', req.body.path)
+                console.log('Redirecting to: %s', req.body.path);
                 res.redirect(req.body.path);
             } else {
                 console.log('Redirecting to /');

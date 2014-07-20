@@ -2,44 +2,38 @@ var config = require('configure'),
     path = require('path'),
     moment = require('moment'),
     Datastore = require('nedb'),
-    Q = require('q');
+    Q = require('q'),
+    dbUpgrade = require('./dbUpgrade.js');
 
 module.exports = function initDatabase(mystik) {
 
-    var defaultAdmin = null;
-
-    return loadDatabase(new Datastore({filename: path.join(process.cwd(), 'db', 'settings.nedb')}))
-        .then(function(settingsDb) {
-            mystik.db.settings = settingsDb;
-            return settingsDb;
-        })
-        .then(loadOrCreateSettings)
-        .then(function(settings) {
-            console.log('\tLoaded settings...');
-            mystik.settings = settings;
-
-            return loadDatabase(new Datastore({filename: path.join(process.cwd(), 'db', 'users.nedb')}));
-        })
-        .then(function(userDb) {
-            mystik.db.users = userDb;
-            return userDb;
-        })
-        .then(loadOrCreateAdminUser)
-        .then(function(defaultAdminUser) {
-            console.log('\tLoaded default admin user...');
-            defaultAdmin = defaultAdminUser;
-
-            return loadDatabase(new Datastore({filename: path.join(process.cwd(), 'db', 'nodes.nedb')}));
-        })
-        .then(function(nodesDb) {
-            mystik.db.nodes = nodesDb;
-            return loadOrCreateRootNode(nodesDb, defaultAdmin);
-        }).then(function(rootNode) {
-            console.log('\tLoaded root node...');
-            mystik.root = rootNode;
+    return Q.all([
+            loadDatabase(new Datastore({filename: path.join(process.cwd(), 'db', 'version.nedb')})),
+            loadDatabase(new Datastore({filename: path.join(process.cwd(), 'db', 'settings.nedb')})),
+            loadDatabase(new Datastore({filename: path.join(process.cwd(), 'db', 'users.nedb')})),
+            loadDatabase(new Datastore({filename: path.join(process.cwd(), 'db', 'nodes.nedb')}))
+        ])
+        .then(function(databases) {
+            console.log('Loaded %d databases...', databases.length);
+            mystik.db.version = databases[0];
+            mystik.db.settings = databases[1];
+            mystik.db.users = databases[2];
+            mystik.db.nodes = databases[3];
 
             return mystik;
-        });
+        })
+        .then(dbUpgrade);
+        /*
+        .then(loadSettings)
+        .then(function(settings) {
+            mystik.settings = settings;
+            return mystik;
+        })
+        .then(loadRootNode)
+        .then(function(rootNode) {
+            mystik.root = rootNode;
+            return mystik;
+        });*/
 };
 
 function loadDatabase(db) {
@@ -55,92 +49,36 @@ function loadDatabase(db) {
     return deferred.promise;
 }
 
-function loadOrCreateSettings(db) {
+function loadSettings(mystik) {
     var deferred = Q.defer();
 
-    db.findOne({}).sort({version: -1}).limit(1).exec(function(err, settings) {
-        if (settings !== null) {
+    mystik.db.settings.findOne({}).sort({version: -1}).limit(1).exec(function(err, settings) {
+        if (err !== null) {
+            deferred.reject(new Error('Failed to load settings from database: ', err));
+        } else if (settings === null) {
+            deferred.reject(new Error('No settings found in database...'));
+        } else {
             deferred.resolve(settings);
-        } else {
-            db.insert({
-                theme: 'default',
-                version: '1'
-            }, function(err, newSettings) {
-                if (err !== null) {
-                    deferred.reject(new Error('Failed to create default settings: ' + err));
-                } else {
-                    deferred.resolve(newSettings);
-                }
-            });
         }
     });
 
     return deferred.promise;
 }
 
-function loadOrCreateAdminUser(db) {
+function loadRootNode(mystik) {
     var deferred = Q.defer();
 
-    db.findOne({email: 'admin@chaotik.co.za'}, function(err, user) {
-        if (user !== null) {
-            deferred.resolve(user);
+    mystik.db.nodes.findOne({path: '/'}, function(err, node) {
+        if (err !== null) {
+            deferred.reject(new Error('Failed to load root node from database: ', err));
+        } else if (node === null) {
+            deferred.reject(new Error('No root node found in database...'));
         } else {
-            db.insert({
-                email: 'admin@chaotik.co.za',
-                firstname: 'Default',
-                lastname: 'Admin',
-                password: 'admin'
-            }, function(err, newUser) {
-                if (err !== null) {
-                    console.log('Failed to create admin');
-                    deferred.reject(new Error('Failed to create default admin user: ' + err));
-                } else {
-                    console.log('Created default admin');
-                    deferred.resolve(newUser);
-                }
-            });
-        }
-    });
-
-    return deferred.promise;
-}
-
-function loadOrCreateRootNode(db, defaultUser) {
-    var deferred = Q.defer();
-
-    var now = moment();
-    db.findOne({path: '/'}, function(err, node) {
-        if (node !== null) {
             deferred.resolve(node);
-        } else {
-            db.insert({
-                parent_id: null,
-                author_id: defaultUser._id,
-                path: '/',
-                title: 'Home Page',
-                body: '## Markdown Content\nThis is some nice *content* written in [Markdown](http://whatismarkdown.com/).\nThings that are awesome:\n1. NodeJS\n2. Games\n3. Websites\n',
-                comments: [{body: 'Test comment :)!', date: now, user_id: defaultUser._id}],
-                date: now,
-                status: 'published',
-                type: 'home'
-            }, function(err, newNode) {
-                if (err !== null) {
-                    deferred.reject(new Error('Failed to create default root page: ' + err));
-                } else {
-                    deferred.resolve(newNode);
-                }
-            });
         }
     });
 
     return deferred.promise;
-
-    /* TODO:
-        /config
-        /users
-        500 error page? Or just as templates...
-        404 error page? Or just as templates...g
-    */
 }
 
 function debugListPages(database) {

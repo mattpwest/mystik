@@ -149,7 +149,7 @@ function installUpstartScript() {
 }
 
 function loadUpstartTemplate(callback) {
-    var templateFile = path.join(sourceDir, 'src', 'scripts', 'service.upstart')
+    var templateFile = path.join(sourceDir, 'src', 'scripts', 'service.upstart');
     fs.readFile(templateFile, 'utf8', function(err, data) {
         if (err !== null) {
             callback('Could not load template "' + templateFile + '" due to: ' + err, null);

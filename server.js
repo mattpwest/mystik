@@ -22,7 +22,8 @@ require('./src/server/db.js')(mystik)
     module.exports = mystik;
  }, function(err) {
     if (err !== null) {
-        console.log('Failed to start Mystik CMS due to: ', err);
+        console.log('Failed to start Mystik CMS...');
+        console.log(err.stack);
         process.exit(-1);
     }
  })
