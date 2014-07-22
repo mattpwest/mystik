@@ -5,6 +5,8 @@ var express = require('express'),
     cookieParser = require('cookie-parser'),
     session = require('express-session'),
     flash = require('connect-flash'),
+    multer = require('multer'),
+    fs = require('fs-extra'),
 
     marked = require('marked'),
     moment = require('moment'),
@@ -23,7 +25,8 @@ module.exports = function(mystik) {
 
     var app = express(),
         defaultRouter = express.Router(),
-        staticRouter = express.Router();
+        staticRouter = express.Router(),
+        uploadRouter = express.Router();
 
     // Use Handlebars as templating engine
     app.engine('html', consolidate.handlebars);
@@ -45,13 +48,47 @@ module.exports = function(mystik) {
     staticRouter.use(express.static(path.join(process.cwd(), 'static')));
     app.use('/static', staticRouter);
 
+    // File upload handler
+    uploadRouter.use(multer({
+        dest: path.join(process.cwd(), 'static', 'uploads'),
+        limits: {
+            fileSize: 10 * 1024 * 1024,
+            files: 2
+        }
+    }));
+    app.use('/upload', uploadRouter);
+    app.route('/upload')
+        .post(function(req, res) {
+            var file = req.files.image,
+                fromFilename = path.join(process.cwd(), 'static', 'uploads', file.name),
+                toFilename = '';
+
+            if (file.mimetype.split('/')[0] === 'image') {
+                toFilename = path.join(process.cwd(), 'static', 'images', file.originalname)
+            } else {
+                toFilename = path.join(process.cwd(), 'static', 'files', file.originalname);
+            }
+
+            toFilename = toFilename.replace('.', '.' + moment().format('YYYYMMDDHHmmss') + '.');
+
+            fs.move(fromFilename, toFilename, function(err) {
+                if (err !== null) {
+                    console.log(err.stack);
+                    res.send(500, {'error': + err});
+                } else {
+                    console.log('Upload %s saved as %s', file.originalname, toFilename);
+
+                    res.send(200, {'error': null});
+                }
+            });
+        });
+
     // Compress any content larger than 512 bytes
     defaultRouter.use(compression({threshold: 512}));
 
     // Setup POST handling
     defaultRouter.use(bodyParser.json());
     defaultRouter.use(bodyParser.urlencoded({"extended": true}));
-    // app.use(express.multipart()); // Security concerns - see: https://groups.google.com/forum/#!msg/express-js/iP2VyhkypHo/5AXQiYN3RPcJ
 
     // Setup security middleware
     defaultRouter.use(cookieParser());
