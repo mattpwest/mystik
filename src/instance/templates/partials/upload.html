@@ -1,15 +1,20 @@
 <div id="upload-modal" class="upload-modal modal fade">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span> <span class="sr-only">Close</span>
                 </button>
 
-                <h4 class="modal-title">Upload files</h4>
+                <h4 class="modal-title">Choose image</h4>
             </div>
 
             <div class="modal-body">
+                <h5>Images</h5>
+                <div id="upload-modal-images" class="container-fluid">
+                </div>
+
+                <h5>Upload</h5>
                 <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="image">File:</label>

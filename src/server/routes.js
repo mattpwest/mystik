@@ -101,6 +101,12 @@ module.exports = function(mystik) {
     // Enable functionality to put flash messages in the session
     defaultRouter.use(flash());
 
+    // REST routes
+    app.use('/api/*', defaultRouter);
+
+    app.route('/api/images')
+        .get(listImages);
+
     // Routes
     app.use('/*', defaultRouter);
 
@@ -129,6 +135,29 @@ module.exports = function(mystik) {
     deferred.resolve(mystik);
     return deferred.promise;
 };
+
+function listImages(req, res) {
+    var imageDir = path.join(process.cwd(), 'static', 'images'),
+        result = {
+            images: [],
+            error: null
+        };
+
+    fs.readdir(imageDir, function(err, files) {
+        var images = [];
+        if (err !== null) {
+            result.error = new Error(err);
+            res.send(500, result);
+        } else {
+            for (var i = 0; i < files.length; i++) {
+                result.images.push(path.join('/', 'static', 'images', path.basename(files[i])));
+            }
+
+            res.send(200, result);
+        }
+    });
+
+}
 
 function handleLogout(req, res) {
     req.logout();

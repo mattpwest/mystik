@@ -51,11 +51,18 @@ Of course you shouldn't be starting your production instance by hand like this, 
 ## Version History
 
 * 0.1.0-alpha.3 (work in progress):
-    * Changed theming mode to be the default.
     * Added page types.
-    * Added -i switch to install an Upstart script.
-* 0.1.0-alpha.2: Added Bower. Replaced LiveReload with BrowserSync. Started using Q promises.
-* 0.1.0-alpha.1: Initial release.
+    * Added database upgrades that add new attributes to older database versions.
+    * Added image / file uploads.
+    * CLI
+        * Changed theming mode to be the default.
+        * Added -i switch to install an Upstart script.
+* 0.1.0-alpha.2:
+    * Added Bower.
+    * Replaced LiveReload with BrowserSync.
+    * Started using Q promises.
+* 0.1.0-alpha.1:
+    * Initial release.
 
 ## Roadmap
 You can view the current TODO list on the [Trello board](https://trello.com/b/ozVTEkDw/mystik-cms).
