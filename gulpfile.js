@@ -8,7 +8,7 @@ var gulp = require('gulp'),
     jshint = require('gulp-jshint'),
     stylish = require('jshint-stylish'),
     bower = require('gulp-bower'),
-    bowerFiles = require('gulp-bower-files'),
+    bowerFiles = require('main-bower-files'),
     filter = require('gulp-filter'),
     flatten = require('gulp-flatten'),
     tap = require('gulp-tap'),
@@ -31,7 +31,7 @@ gulp.task('bower', function() {
             .pipe(gulp.dest(path.join(wrkDir, 'bower_components')));
 });
 
-gulp.task('copyBowerFiles', ['bower'], function() {
+gulp.task('loadBowerFiles', ['bower'], function() {
     var cssFilter = filter('**/*.css'),
         jsFilter = filter('**/*.js'),
         fontsFilter = filter('**/fonts/*');
@@ -41,7 +41,8 @@ gulp.task('copyBowerFiles', ['bower'], function() {
         js: [],
     };
 
-    return bowerFiles()
+    return gulp
+            .src(bowerFiles({}))
             .pipe(cssFilter)
             .pipe(tap(function(file, t) {
                 libraries.css.push(file.path);
@@ -59,14 +60,17 @@ gulp.task('copyBowerFiles', ['bower'], function() {
             .pipe(gulp.dest(path.join(wrkDir, 'static', 'fonts')));
 });
 
-gulp.task('less', ['copyBowerFiles'], function() {
+gulp.task('less', ['loadBowerFiles'], function() {
     return gulp.src(path.join(wrkDir, 'less', 'main.less'))
         .pipe(less())
         .pipe(gulp.dest(path.join(wrkDir, 'tmp')));
 });
 
 gulp.task('css', ['less'], function() {
+    var bowerCodeMirrorCssPath = path.join(wrkDir, 'bower_components', 'codemirror', 'theme', '*.css');
+    libraries.css.push(bowerCodeMirrorCssPath);
     libraries.css.push(path.join(wrkDir, 'tmp', 'main.css'));
+    console.log(libraries.css);
 
     return gulp.src(libraries.css)
         .pipe(concat('main.css'))
@@ -77,13 +81,27 @@ gulp.task('css', ['less'], function() {
         .pipe(browserSync.reload({stream: true}));
 });
 
-gulp.task('jsCheck', ['copyBowerFiles'], function() {
+gulp.task('jsCheck', ['loadBowerFiles'], function() {
     return gulp.src(path.join(wrkDir, 'js', 'main.js'))
         .pipe(jshint())
         .pipe(jshint.reporter(stylish));
 });
 
-gulp.task('js', ['jsCheck'], function() {
+gulp.task('jsCodeMirrorAddOns', ['loadBowerFiles'], function() {
+    return gulp
+        .src(path.join(wrkDir, 'bower_components', 'codemirror', 'addons'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static')));
+});
+
+gulp.task('jsCodeMirrorModes', ['loadBowerFiles'], function() {
+    return gulp
+        .src(path.join(wrkDir, 'bower_components', 'codemirror', 'mode'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static')));
+});
+
+gulp.task('jsCodeMirror', ['jsCodeMirrorAddOns', 'jsCodeMirrorModes']);
+
+gulp.task('js', ['jsCodeMirror', 'jsCheck'], function() {
     libraries.js.push(path.join(wrkDir, 'js', 'main.js'));
 
     return gulp.src(libraries.js)
@@ -92,7 +110,11 @@ gulp.task('js', ['jsCheck'], function() {
       .pipe(uglify())
       .pipe(rename('main.min.js'))
       .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
-      .pipe(browserSync.reload({stream: true}));
+      .pipe(browserSync.reload({stream: true}))
+      .on('data', function() {})
+      .on('error', function(err) {
+        console.log(err);
+      });
 });
 
 gulp.task('server-scripts', function() {

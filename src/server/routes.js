@@ -35,7 +35,7 @@ module.exports = function(mystik) {
 
     // Route for handling static content serving...
     // Workaround for Express seemingly not setting the content-type header, causing compression to fail...
-    staticRouter.use(function(req, res, next) {
+    staticRouter.use(function mystikFixContentTypeForCompression(req, res, next) {
         if (/^.*[.]js$/.test(req.path)) {
             res.set('Content-Type', 'application/javascript');
         } else if (/^.*[.]css$/.test(req.path)) {
@@ -46,6 +46,7 @@ module.exports = function(mystik) {
     });
     staticRouter.use(compression({threshold: 512}));
     staticRouter.use(express.static(path.join(process.cwd(), 'static')));
+    staticRouter.use(mystikErrorCatchAll);
     app.use('/static', staticRouter);
 
     // File upload handler
@@ -56,32 +57,34 @@ module.exports = function(mystik) {
             files: 2
         }
     }));
-    app.use('/upload', uploadRouter);
-    app.route('/upload')
-        .post(function(req, res) {
-            var file = req.files.image,
-                fromFilename = path.join(process.cwd(), 'static', 'uploads', file.name),
-                toFilename = '';
+    uploadRouter.use(mystikErrorCatchAll);
 
-            if (file.mimetype.split('/')[0] === 'image') {
-                toFilename = path.join(process.cwd(), 'static', 'images', file.originalname)
+    uploadRouter.post('', function mystikHandleUploadPost(req, res) {
+        var file = req.files.image,
+            fromFilename = path.join(process.cwd(), 'static', 'uploads', file.name),
+            toFilename = '';
+
+        if (file.mimetype.split('/')[0] === 'image') {
+            toFilename = path.join(process.cwd(), 'static', 'images', file.originalname);
+        } else {
+            toFilename = path.join(process.cwd(), 'static', 'files', file.originalname);
+        }
+
+        toFilename = toFilename.replace('.', '.' + moment().format('YYYYMMDDHHmmss') + '.');
+
+        fs.move(fromFilename, toFilename, function(err) {
+            if (err !== null) {
+                console.log(err.stack);
+                res.send(500, {'error': + err});
             } else {
-                toFilename = path.join(process.cwd(), 'static', 'files', file.originalname);
+                console.log('Upload %s saved as %s', file.originalname, toFilename);
+
+                res.send(200, {'error': null});
             }
-
-            toFilename = toFilename.replace('.', '.' + moment().format('YYYYMMDDHHmmss') + '.');
-
-            fs.move(fromFilename, toFilename, function(err) {
-                if (err !== null) {
-                    console.log(err.stack);
-                    res.send(500, {'error': + err});
-                } else {
-                    console.log('Upload %s saved as %s', file.originalname, toFilename);
-
-                    res.send(200, {'error': null});
-                }
-            });
         });
+    });
+
+    app.use('/upload', uploadRouter);
 
     // Compress any content larger than 512 bytes
     defaultRouter.use(compression({threshold: 512}));
@@ -92,7 +95,12 @@ module.exports = function(mystik) {
 
     // Setup security middleware
     defaultRouter.use(cookieParser());
-    defaultRouter.use(session({secret: 'jwnmoiw90kwqln0qkwetr8re9wlq0ree1', cookie: {maxAge: 15 * 60 * 1000}}));
+    defaultRouter.use(session({
+        resave: false,
+        saveUninitialized: true,
+        secret: 'jwnmoiw90kwqln0qkwetr8re9wlq0ree1',
+        cookie: {maxAge: 15 * 60 * 1000}
+    }));
 
     // Setup security middleware
     defaultRouter.use(mystik.passport.initialize());
@@ -101,40 +109,40 @@ module.exports = function(mystik) {
     // Enable functionality to put flash messages in the session
     defaultRouter.use(flash());
 
-    // REST routes
-    app.use('/api/*', defaultRouter);
+    defaultRouter.use(mystikErrorCatchAll);
 
-    app.route('/api/images')
-        .get(listImages);
+    defaultRouter.get('/favicon.ico', function mystikIgnoreFaviconRequests(req, res) {
+        console.log('Ignoring favicon request.');
+        res.send(500, 'No favicon defined.');
+    });
+    defaultRouter.get('/api/images', listImages);
+    defaultRouter.get('/logout', handleLogout);
+    defaultRouter.get('/*', handleGET);
 
-    // Routes
-    app.use('/*', defaultRouter);
+    defaultRouter.post('/login', mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}), function(req, res) {
+        console.log('Handling login at %s', req.url);
+        if ((req.body.path !== undefined) && (req.body.path !== '')) {
+            console.log('Redirecting to: %s', req.body.path);
+            res.redirect(req.body.path);
+        } else {
+            console.log('Redirecting to /');
+            res.redirect('/');
+        }
+    });
+    defaultRouter.post('/*', handlePOST);
 
-    app.route('/logout')
-        .get(handleLogout);
-
-    app.route('/*')
-        .get(handleGET);
-
-    app.route('/login')
-        .post(mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}), function(req, res) {
-            console.log('Handling login at %s', req.url);
-            if ((req.body.path !== undefined) && (req.body.path !== '')) {
-                console.log('Redirecting to: %s', req.body.path);
-                res.redirect(req.body.path);
-            } else {
-                console.log('Redirecting to /');
-                res.redirect('/');
-            }
-        });
-
-    app.route('/*')
-        .post(handlePOST);
+    app.use(defaultRouter);
 
     mystik.server = app;
     deferred.resolve(mystik);
     return deferred.promise;
 };
+
+function mystikErrorCatchAll(err, req, res, next) {
+    console.log(err.stack);
+    res.send(500, 'Oops - something exploded!');
+    next();
+}
 
 function listImages(req, res) {
     var imageDir = path.join(process.cwd(), 'static', 'images'),
@@ -171,6 +179,8 @@ function handleGET(req, res) {
     reqPath = reqPath.split('/').filter(function(e) {
         return e.length > 0;
     });
+
+    console.log('GET: %s', reqPath);
 
     // Handle the index page
     if (reqPath.length === 0) {
@@ -220,6 +230,8 @@ function handlePOST(req, res) {
     var actionStr = reqPath[reqPath.length - 1],
         action;
 
+    console.log('POST: %s - action = %s', reqPath, actionStr);
+
     if (actionStr === 'save') {
         reqPath = reqPath.slice(0, reqPath.length - 1);
 
@@ -229,16 +241,18 @@ function handlePOST(req, res) {
             reqPath = [''].concat(reqPath).join('/');
         }
 
+        console.log('Saving %s', reqPath);
         db.nodes.update({path: reqPath},
             {$set: {body: req.body.body, title: req.body.title, type: req.body.type, date: moment()}},
             {}, // options
             function(err, numReplaced) {
                 if (err !== null) {
+                    console.log('Error saving...', err.stack);
                     errorInternal(req, res, err);
-                    return;
+                } else {
+                    res.redirect(reqPath);
+                    console.log('Redirecting to %s', reqPath);
                 }
-
-                res.redirect(reqPath);
             });
     } else if (actionStr === 'create') {
         reqPath = reqPath.slice(0, reqPath.length - 1);
@@ -311,17 +325,28 @@ function renderLogin(reqPath, req, res, db) {
 function renderNode(reqPath, req, res, db) {
     var node = null;
 
+    console.log('mystik.renderNode(%s, ...)', reqPath);
+
     getNode(reqPath)
         .then(function(targetNode) {
+            console.log('mystik.renderNode: got target node');
             node = targetNode;
             return node;
         })
         .then(getNodeAuthor)
         .then(function(author) {
+            console.log('mystik.renderNode: got target node author');
             return buildModel(node, req, author);
         })
         .then(function(model) {
+            console.log('mystik.renderNode: rendering');
             res.render('pages/' + model.type, model);
+        }, function(err) {
+            if (err !== null) {
+                console.log(err);
+                console.log(err.stack);
+                res.send(500, 'Error rendering node...');
+            }
         });
 }
 
@@ -410,15 +435,18 @@ function renderDelete(reqPath, req, res, db) {
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {
     // if user is authenticated in the session, carry on 
-    if (req.isAuthenticated())
+    if (req.isAuthenticated()) {
+        console.log('isAuthenticated: true');
         return next();
-
-    // if they aren't redirect them to the login page
-    res.redirect('/login');
+    } else {
+        console.log('isAuthenticated: false');
+        // if they aren't redirect them to the login page
+        res.redirect('/login');
+    }
 }
 
 function errorInternal(req, res, err) {
-    console.log(err);
+    console.log(err.stack);
     res.render('index', {content: '500 Internal server error: ' + err});
     // TODO: redirect to an actual 500 page
     // TODO: Set response codes
@@ -440,21 +468,32 @@ function errorUserNotFound(req, res) {
 
 function buildModel(node, req, author) {
     var reqPath = node.path;
+    console.log('mystik.buildModel path: %s', reqPath);
     if (node.path === '/') { // Special case to make edit / login links from root work
         reqPath = '';
+        console.log('mystik.buildModel adjusted path: %s', reqPath);
     }
 
+    var nav = null;
     return getNavigation()
         .then(function(navigation) {
+            nav = navigation;
+            console.log('mystik.buildModel got navigation...');
+
+            console.log('mystik.buildModel generating content from markdown');
+            return marked(node.body);
+        })
+        .then(function(bodyContent) {
+            console.log(node.date);
             return {
                 author: author,
-                content: marked(node.body),
+                content: bodyContent,
                 currentUser: req.user,
                 path: reqPath,
                 title: node.title,
                 timestamp: moment(node.date).format("Do MMMM YYYY"),
                 flash: req.flash('flash'),
-                navigation: navigation,
+                navigation: nav,
                 type: node.type
             };
         });
@@ -514,15 +553,18 @@ function buildModelForEditOrCreate(node, parentNode, req) {
 }
 
 function getNavigation() {
+    console.log('mystik.getNavigation()');
     var root = null;
 
     return getRootNode()
         .then(function(rootNode) {
+            console.log('mystik.getNavigation() got root node...');
             root = rootNode;
             return root;
         })
         .then(getChildNodes)
         .then(function(nodes) {
+            console.log('mystik.getNavigation() got child nodes...');
             navigation = [];
             navigation.push(root);
             navigation = navigation.concat(nodes);
@@ -538,8 +580,8 @@ function getNode(reqPath) {
     var deferred = Q.defer();
 
     db.nodes.findOne({path: reqPath}, function(err, node) {
-        if (err !== null) {
-            deferred.reject(new Error('No path "%s" defined in database.', reqPath));
+        if ((err !== null) || (node === null)) {
+            deferred.reject(new Error('No path "' + reqPath + '" defined in database.'));
         } else {
             deferred.resolve(node);
         }

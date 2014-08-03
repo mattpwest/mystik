@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "bootstrap": "~3.2.0",
-    "jquery-form": "3.46.0"
+    "jquery-form": "3.46.0",
+    "codemirror": "~4.4.0"
   }
 }
