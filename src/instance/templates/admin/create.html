@@ -34,6 +34,15 @@
 
             <div class="form-group">
                 <label for="body">Content</label>
+
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group">
+                        <a href="#" class="btn btn-default" data-toggle="modal" data-target="#upload-modal">
+                            <span class="glyphicon glyphicon-picture"></span>
+                        </a>
+                    </div>
+                </div>
+
                 <textarea id="editor" name="body" class="form-control" id="body" rows="20">{{body}}</textarea>
             </div>
 
@@ -41,4 +50,4 @@
             <button type="cancel" class="btn btn-warning">Cancel</button>
         </form>
     </article>
-{{> bottom}}
+{{> bottom_edit}}

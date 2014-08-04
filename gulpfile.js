@@ -31,34 +31,82 @@ gulp.task('bower', function() {
             .pipe(gulp.dest(path.join(wrkDir, 'bower_components')));
 });
 
-gulp.task('loadBowerFiles', ['bower'], function() {
-    var cssFilter = filter('**/*.css'),
-        jsFilter = filter('**/*.js'),
-        fontsFilter = filter('**/fonts/*');
-
-    libraries = {
-        css: [],
-        js: [],
-    };
+gulp.task('loadBowerCss', ['bower'], function() {
+    var cssFilter = filter('**/*.css');
+    libraries.css = [];
 
     return gulp
-            .src(bowerFiles({}))
+            .src(bowerFiles({base: wrkDir}))
             .pipe(cssFilter)
             .pipe(tap(function(file, t) {
                 libraries.css.push(file.path);
-            }))
-            .pipe(cssFilter.restore())
+            }));
+});
 
+gulp.task('loadBowerJs', ['bower', 'loadBowerCss'], function() {
+    var jsFilter = filter('**/*.js');
+    libraries.js = [];
+
+    return gulp
+            .src(bowerFiles({base: wrkDir}))
             .pipe(jsFilter)
             .pipe(tap(function(file, t) {
                 libraries.js.push(file.path);
-            }))
-            .pipe(jsFilter.restore())
+            }));
+});
 
+gulp.task('loadBowerFonts', ['bower', 'loadBowerJs', 'loadBowerCss'], function() {
+    var fontsFilter = filter('**/glyphicons-halflings-regular.*');
+
+    return gulp
+            .src(bowerFiles({base: wrkDir}))
             .pipe(fontsFilter)
             .pipe(flatten())
             .pipe(gulp.dest(path.join(wrkDir, 'static', 'fonts')));
 });
+
+gulp.task('loadBowerFiles', ['loadBowerCss', 'loadBowerJs', 'loadBowerFonts'], function(cb) {
+    cb();
+});
+
+// gulp.task('loadBowerFiles', ['bower'], function() {
+//     var cssFilter = filter('**/*.css'),
+//         jsFilter = filter('**/*.js'),
+//         fontsFilter = filter('**/fonts/*');
+
+//     libraries = {
+//         css: [],
+//         js: [],
+//     };
+
+//     return gulp
+//             .src(bowerFiles({base: wrkDir}))
+//             .pipe(cssFilter)
+//             .pipe(tap(function(file, t) {
+//                 libraries.css.push(file.path);
+//                 console.log('css: %s', file.path);
+//             }))
+//             .pipe(cssFilter.restore({end: true}))
+
+//             .pipe(jsFilter)
+//             .pipe(tap(function(file, t) {
+//                 libraries.js.push(file.path);
+//                 console.log('js: %s', file.path);
+//             }))
+//             .pipe(jsFilter.restore({end: true}))
+
+//             .pipe(fontsFilter)
+//             /*.pipe(tap(function(file, t) {
+//                 console.log('fonts: %s', file.path);
+//             }))
+//             .pipe(flatten())*/
+//             .pipe(tap(function(file, t) {
+//                 console.log('flat_fonts: %s', file.path);
+//             }))
+//             /*.pipe(fontsFilter.restore({end: true}))*/
+
+//             .pipe(gulp.dest(path.join(wrkDir, 'static', 'fonts')));
+// });
 
 gulp.task('less', ['loadBowerFiles'], function() {
     return gulp.src(path.join(wrkDir, 'less', 'main.less'))

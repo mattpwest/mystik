@@ -9,23 +9,49 @@
                 <h4 class="modal-title">Choose image</h4>
             </div>
 
-            <div class="modal-body">
-                <h5>Images</h5>
-                <div id="upload-modal-images" class="container-fluid">
+            <div class="modal-body container-fluid">
+                <h5>Selected</h5>
+
+                <div class="row">
+                    <img id="upload-selected-image" src="" alt="Selected Images" class="img-rounded col-md-3">
                 </div>
 
-                <h5>Upload</h5>
-                <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="image">File:</label>
-                        <input type="file" id="file-select" name="image"/>
+                <form class="row form-inline" role="form" id="upload-insert-form">
+                    <div class="col-md-3 form-group">
+                        <label class="sr-only" for="upload-insert-filename">Filename</label>
+                        <input type="text" class="form-control" id="upload-insert-filename" placeholder="Filename" disabled>
                     </div>
-                    <button type="submit" class="btn btn-primary" id="upload-submit">Upload</button>
+
+                    <div class="col-md-3 form-group">
+                        <label class="sr-only" for="upload-insert-alt-text">Accessibility Text</label>
+                        <input type="text" class="form-control" id="upload-insert-alt-text" placeholder="Accessibility Text" disabled>
+                    </div>
+
+                    <div class="col-md-3 form-group">
+                        <label class="sr-only" for="upload-insert-title">Title</label>
+                        <input type="text" class="form-control" id="upload-insert-title" placeholder="Title" disabled>
+                    </div>
+
+                    <button type="submit" class="col-md-2 btn btn-success" id="upload-insert-submit" disabled>Insert</button>
                 </form>
 
-                <div id="upload-progress" class="progress" style="display: none">
-                    <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 45%">
+                <h5>Upload</h5>
+                <form class="row form-inline" id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+                    <div class="col-md-4 form-group">
+                        <label class="sr-only" for="image">File:</label>
+                        <input type="file" id="file-select" name="image"/>
                     </div>
+
+                    <button type="submit" class="col-md-2 btn btn-primary" id="upload-submit">Upload</button>
+
+                    <div id="upload-progress" class="col-md-5 progress" style="display: none">
+                        <div class="col-md-5 progress-bar progress-bar-striped active" role="progressbar">
+                        </div>
+                    </div>
+                </form>
+
+                <h5>Images</h5>
+                <div id="upload-modal-images" class="container-fluid">
                 </div>
             </div>
       

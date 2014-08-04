@@ -30,6 +30,39 @@
 
             CodeMirror.colorize(preElem, language);
         });
+
+        $('#upload-modal').on('show.bs.modal', function(event) {
+            $('#upload-selected-image').removeAttr('src');
+            $('#upload-insert-filename').val('');
+            $('#upload-insert-alt-text').attr('disabled', 'disabled').val('');
+            $('#upload-insert-title').attr('disabled', 'disabled').val('');
+            $('#upload-insert-submit').attr('disabled', 'disabled');
+        });
+
+        $('#upload-modal-images').on('click', 'img', function(event) {
+            var imageLink = $(this).attr('src'),
+                filenameParts = imageLink.split('/'),
+                filename = filenameParts[filenameParts.length - 1];
+
+            $('#upload-selected-image').attr('src', imageLink);
+            $('#upload-insert-filename').val(filename);
+            $('#upload-insert-alt-text').removeAttr('disabled');
+            $('#upload-insert-title').removeAttr('disabled');
+            $('#upload-insert-submit').removeAttr('disabled');
+        });
+
+        $('#upload-insert-form').on('submit', function(event) {
+            var markdown = '![' + $('#upload-insert-alt-text').val() + '](' +
+                            $('#upload-selected-image').attr('src') + ' "' +
+                            $('#upload-insert-title').val() + '")\n';
+            console.log(markdown);
+
+            editor.replaceSelection(markdown);
+
+            $('#upload-modal').modal('hide');
+
+            return false; // Prevent normal form submission
+        });
     });
 
     function updateImages() {
@@ -46,7 +79,7 @@
                         var output = '';
 
                         for (var i = 0; i < data.images.length; i++) {
-                            if (i % 3 === 0) {
+                            if (i % 4 === 0) {
                                 if (i !== 0) {
                                     output += '</div>';
                                 }
@@ -54,7 +87,7 @@
                                 output += '<div class="row" />';
                             }
 
-                            output += '<div class="col-sm-6 col-md-4">';
+                            output += '<div class="col-md-3">';
                             output += '<a href="#" class="thumbnail">';
                             output += '<img src="' + data.images[i] + '">';
                             output += '</a>';
@@ -75,9 +108,7 @@
             form = $('#upload-form');
         
         progressBar.css('width', '0%');
-        form.hide(function() {
-            progress.show();
-        });
+        progress.show();
     }
 
     function onUploadProgress(event, position, total, percentComplete) {
@@ -94,7 +125,6 @@
         setTimeout(function() { // Initial animations may not have finished yet if the uploaded file was small
             progress.hide(function() {
                 form.clearForm();
-                form.show();
             });
         }, 1000);
     }

@@ -84,7 +84,7 @@ function onCopyError(err) {
 function runInThemingMode() {
     gulpfile.start('theming', function(err) {
         if (err) {
-            console.log(err);
+            console.log(err.stack);
             process.exit(-1);
         }
 
@@ -95,7 +95,7 @@ function runInThemingMode() {
 function runInProductionMode() {
     gulpfile.start('build-all', function(err) {
         if (err) {
-            console.log(err);
+            console.log(err.stack);
             process.exit(-1);
         }
 

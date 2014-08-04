@@ -75,11 +75,11 @@ module.exports = function(mystik) {
         fs.move(fromFilename, toFilename, function(err) {
             if (err !== null) {
                 console.log(err.stack);
-                res.send(500, {'error': + err});
+                res.status(500).send({'error': + err});
             } else {
                 //console.log('Upload %s saved as %s', file.originalname, toFilename);
 
-                res.send(200, {'error': null});
+                res.status(200).send({'error': null});
             }
         });
     });
@@ -140,7 +140,7 @@ module.exports = function(mystik) {
 
 function mystikErrorCatchAll(err, req, res, next) {
     console.log(err.stack);
-    res.send(500, 'Oops - something exploded!');
+    res.status(500).send('Oops - something exploded!');
     next();
 }
 
@@ -155,13 +155,13 @@ function listImages(req, res) {
         var images = [];
         if (err !== null) {
             result.error = new Error(err);
-            res.send(500, result);
+            res.status(500).send(result);
         } else {
             for (var i = 0; i < files.length; i++) {
                 result.images.push(path.join('/', 'static', 'images', path.basename(files[i])));
             }
 
-            res.send(200, result);
+            res.status(200).send(result);
         }
     });
 
@@ -345,7 +345,7 @@ function renderNode(reqPath, req, res, db) {
             if (err !== null) {
                 console.log(err);
                 console.log(err.stack);
-                res.send(500, 'Error rendering node...');
+                res.status(500).send('Error rendering node...');
             }
         });
 }
