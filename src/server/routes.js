@@ -19,7 +19,7 @@ var db,
 
 module.exports = function(mystik) {
     var deferred = Q.defer();
-    console.log('Configuring Express routes...');
+    //console.log('Configuring Express routes...');
 
     db = mystik.db;
 
@@ -77,7 +77,7 @@ module.exports = function(mystik) {
                 console.log(err.stack);
                 res.send(500, {'error': + err});
             } else {
-                console.log('Upload %s saved as %s', file.originalname, toFilename);
+                //console.log('Upload %s saved as %s', file.originalname, toFilename);
 
                 res.send(200, {'error': null});
             }
@@ -112,20 +112,20 @@ module.exports = function(mystik) {
     defaultRouter.use(mystikErrorCatchAll);
 
     defaultRouter.get('/favicon.ico', function mystikIgnoreFaviconRequests(req, res) {
-        console.log('Ignoring favicon request.');
-        res.send(500, 'No favicon defined.');
+        //console.log('Ignoring favicon request.');
+        res.status(500).send('No favicon defined.');
     });
     defaultRouter.get('/api/images', listImages);
     defaultRouter.get('/logout', handleLogout);
     defaultRouter.get('/*', handleGET);
 
     defaultRouter.post('/login', mystik.passport.authenticate('local-login', {failureRedirect: '/login', failureFlash: true}), function(req, res) {
-        console.log('Handling login at %s', req.url);
+        //console.log('Handling login at %s', req.url);
         if ((req.body.path !== undefined) && (req.body.path !== '')) {
-            console.log('Redirecting to: %s', req.body.path);
+            //console.log('Redirecting to: %s', req.body.path);
             res.redirect(req.body.path);
         } else {
-            console.log('Redirecting to /');
+            //console.log('Redirecting to /');
             res.redirect('/');
         }
     });
@@ -180,7 +180,7 @@ function handleGET(req, res) {
         return e.length > 0;
     });
 
-    console.log('GET: %s', reqPath);
+    //console.log('GET: %s', reqPath);
 
     // Handle the index page
     if (reqPath.length === 0) {
@@ -230,7 +230,7 @@ function handlePOST(req, res) {
     var actionStr = reqPath[reqPath.length - 1],
         action;
 
-    console.log('POST: %s - action = %s', reqPath, actionStr);
+    //console.log('POST: %s - action = %s', reqPath, actionStr);
 
     if (actionStr === 'save') {
         reqPath = reqPath.slice(0, reqPath.length - 1);
@@ -241,7 +241,7 @@ function handlePOST(req, res) {
             reqPath = [''].concat(reqPath).join('/');
         }
 
-        console.log('Saving %s', reqPath);
+        //console.log('Saving %s', reqPath);
         db.nodes.update({path: reqPath},
             {$set: {body: req.body.body, title: req.body.title, type: req.body.type, date: moment()}},
             {}, // options
@@ -251,7 +251,7 @@ function handlePOST(req, res) {
                     errorInternal(req, res, err);
                 } else {
                     res.redirect(reqPath);
-                    console.log('Redirecting to %s', reqPath);
+                    //console.log('Redirecting to %s', reqPath);
                 }
             });
     } else if (actionStr === 'create') {
@@ -325,21 +325,21 @@ function renderLogin(reqPath, req, res, db) {
 function renderNode(reqPath, req, res, db) {
     var node = null;
 
-    console.log('mystik.renderNode(%s, ...)', reqPath);
+    //console.log('mystik.renderNode(%s, ...)', reqPath);
 
     getNode(reqPath)
         .then(function(targetNode) {
-            console.log('mystik.renderNode: got target node');
+            //console.log('mystik.renderNode: got target node');
             node = targetNode;
             return node;
         })
         .then(getNodeAuthor)
         .then(function(author) {
-            console.log('mystik.renderNode: got target node author');
+            //console.log('mystik.renderNode: got target node author');
             return buildModel(node, req, author);
         })
         .then(function(model) {
-            console.log('mystik.renderNode: rendering');
+            //console.log('mystik.renderNode: rendering');
             res.render('pages/' + model.type, model);
         }, function(err) {
             if (err !== null) {
@@ -436,10 +436,10 @@ function renderDelete(reqPath, req, res, db) {
 function isLoggedIn(req, res, next) {
     // if user is authenticated in the session, carry on 
     if (req.isAuthenticated()) {
-        console.log('isAuthenticated: true');
+        //console.log('isAuthenticated: true');
         return next();
     } else {
-        console.log('isAuthenticated: false');
+        //console.log('isAuthenticated: false');
         // if they aren't redirect them to the login page
         res.redirect('/login');
     }
@@ -468,23 +468,22 @@ function errorUserNotFound(req, res) {
 
 function buildModel(node, req, author) {
     var reqPath = node.path;
-    console.log('mystik.buildModel path: %s', reqPath);
+    //console.log('mystik.buildModel path: %s', reqPath);
     if (node.path === '/') { // Special case to make edit / login links from root work
         reqPath = '';
-        console.log('mystik.buildModel adjusted path: %s', reqPath);
+        //console.log('mystik.buildModel adjusted path: %s', reqPath);
     }
 
     var nav = null;
     return getNavigation()
         .then(function(navigation) {
             nav = navigation;
-            console.log('mystik.buildModel got navigation...');
+            //console.log('mystik.buildModel got navigation...');
 
-            console.log('mystik.buildModel generating content from markdown');
+            //console.log('mystik.buildModel generating content from markdown');
             return marked(node.body);
         })
         .then(function(bodyContent) {
-            console.log(node.date);
             return {
                 author: author,
                 content: bodyContent,
@@ -553,18 +552,18 @@ function buildModelForEditOrCreate(node, parentNode, req) {
 }
 
 function getNavigation() {
-    console.log('mystik.getNavigation()');
+    //console.log('mystik.getNavigation()');
     var root = null;
 
     return getRootNode()
         .then(function(rootNode) {
-            console.log('mystik.getNavigation() got root node...');
+            //console.log('mystik.getNavigation() got root node...');
             root = rootNode;
             return root;
         })
         .then(getChildNodes)
         .then(function(nodes) {
-            console.log('mystik.getNavigation() got child nodes...');
+            //console.log('mystik.getNavigation() got child nodes...');
             navigation = [];
             navigation.push(root);
             navigation = navigation.concat(nodes);

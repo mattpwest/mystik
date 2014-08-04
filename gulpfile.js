@@ -70,7 +70,6 @@ gulp.task('css', ['less'], function() {
     var bowerCodeMirrorCssPath = path.join(wrkDir, 'bower_components', 'codemirror', 'theme', '*.css');
     libraries.css.push(bowerCodeMirrorCssPath);
     libraries.css.push(path.join(wrkDir, 'tmp', 'main.css'));
-    console.log(libraries.css);
 
     return gulp.src(libraries.css)
         .pipe(concat('main.css'))
@@ -89,22 +88,34 @@ gulp.task('jsCheck', ['loadBowerFiles'], function() {
 
 gulp.task('jsCodeMirrorAddOns', ['loadBowerFiles'], function() {
     return gulp
-        .src(path.join(wrkDir, 'bower_components', 'codemirror', 'addons'))
-        .pipe(gulp.dest(path.join(wrkDir, 'static')));
+        .src(path.join(wrkDir, 'bower_components', 'codemirror', 'addon', '**'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'addon')));
 });
 
 gulp.task('jsCodeMirrorModes', ['loadBowerFiles'], function() {
     return gulp
-        .src(path.join(wrkDir, 'bower_components', 'codemirror', 'mode'))
-        .pipe(gulp.dest(path.join(wrkDir, 'static')));
+        .src(path.join(wrkDir, 'bower_components', 'codemirror', 'mode', '**'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'mode')));
 });
 
 gulp.task('jsCodeMirror', ['jsCodeMirrorAddOns', 'jsCodeMirrorModes']);
 
-gulp.task('js', ['jsCodeMirror', 'jsCheck'], function() {
-    libraries.js.push(path.join(wrkDir, 'js', 'main.js'));
-
+gulp.task('jsLibraries', ['jsCodeMirror'], function() {
     return gulp.src(libraries.js)
+      .pipe(concat('libraries.js'))
+      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
+      .pipe(uglify())
+      .pipe(rename('libraries.min.js'))
+      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
+      .pipe(browserSync.reload({stream: true}))
+      .on('data', function() {})
+      .on('error', function(err) {
+        console.log(err);
+      });
+})
+
+gulp.task('js', ['jsLibraries', 'jsCheck'], function() {
+    return gulp.src(path.join(wrkDir, 'js', '*.js'))
       .pipe(concat('main.js'))
       .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
       .pipe(uglify())

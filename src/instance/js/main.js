@@ -1,7 +1,9 @@
 (function($) {
     // Your custom JavaScript here:
 
-    // JavaScript for image uploading (TODO: Modularize client-side JavaScript)
+    // JavaScript for image uploading and text editor (TODO: Modularize client-side JavaScript)
+    var editor = null;
+
     $(document).ready(function() {
         $('#upload-form').ajaxForm({
             beforeSend: onUploadStart,
@@ -11,6 +13,22 @@
 
         $('#upload-modal').on('show.bs.modal', function(event) {
             updateImages();
+        });
+
+        var textArea = document.getElementById("editor");
+        if (textArea !== null) {
+            editor = CodeMirror.fromTextArea(textArea, {
+                mode: 'markdown',
+                theme: 'monokai',
+                indentUnit: 4
+            });
+        }
+
+        $('code').each(function(elem) {
+            var language = $('code').attr('class').split('-')[1],
+                preElem = $('code').parent('pre');
+
+            CodeMirror.colorize(preElem, language);
         });
     });
 

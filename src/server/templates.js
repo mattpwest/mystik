@@ -7,10 +7,10 @@ var fs = require('fs'),
 module.exports = function registerPartials(mystik) {
     return loadPartials(mystik.handlebars)
         .then(function(loadedPartials) {
-            console.log('\tLoaded partials: ');
+            //console.log('\tLoaded partials: ');
 
             loadedPartials.forEach(function(partial) {
-                console.log('\t\t', partial);
+                //console.log('\t\t', partial);
             });
             
             return mystik;
@@ -19,7 +19,7 @@ module.exports = function registerPartials(mystik) {
 
 function loadPartials(handlebars) {
     var partialsDir = path.join(process.cwd(), 'templates', 'partials');
-    console.log('Loading partials from %s', partialsDir);
+    //console.log('Loading partials from %s', partialsDir);
 
     return findFilesInPath(partialsDir)
         .then(function(files) {
