@@ -51,7 +51,7 @@ Of course you shouldn't be starting your production instance by hand like this, 
 
 ## Version History
 
-* 0.1.0-alpha.3 (work in progress):
+* 0.1.0-alpha.3:
     * Added page types.
     * Added a second level of navigation.
     * Added a nice CodeMirror based editor.
