@@ -1,0 +1,13 @@
+<ul class="nav nav-pills nav-stacked">
+    {{#each navigation_level1}}
+        <li>
+            <a href="{{path}}">{{title}}</a>
+        </li>
+    {{/each}}
+
+    {{#if currentUser}}
+        <li>
+            <a href="{{pathForCreate}}/create">Add Page</a>
+        </li>
+    {{/if}}
+</ul>

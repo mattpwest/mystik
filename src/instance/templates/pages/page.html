@@ -13,17 +13,25 @@
             {{/if}}
         </h1>
 
-        
-        {{{content}}}
+        <div class="row">
+            <div class="col-md-9">
+                {{{content}}}
 
-        {{#if author}}
-            <p>
-                Posted by 
-                    <a href="/users/{{author._id}}">
-                        {{author.firstname}} {{author.lastname}}
-                    </a>
-                 on {{timestamp}}
-            </p>
-        {{/if}}
+                {{#if author}}
+                    <p>
+                        Posted by 
+                            <a href="/users/{{author._id}}">
+                                {{author.firstname}} {{author.lastname}}
+                            </a>
+                         on {{timestamp}}
+                    </p>
+                {{/if}}
+            </div>
+
+            <div class="panel panel-default col-md-3">
+                <div class="panel-body">
+                    {{> navigation_side}}
+                </div>
+            </div>
     </article>
 {{> bottom}}

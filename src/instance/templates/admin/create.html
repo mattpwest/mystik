@@ -10,8 +10,9 @@
 
             {{#if parentId}}
                 <div class="form-group">
-                    <label for="basePath">Base Path</label>
-                    <input name="basePath" type="text" class="form-control" id="basePath" placeholder="Path" value="{{basePath}}" disabled="disabled">
+                    <label for="basePathDisplay">Base Path</label>
+                    <input name="basePath" type="text" class="form-control" id="basePathDisplay" placeholder="Path" value="{{basePath}}" disabled="disabled">
+                    <input name="basePath" type="hidden" class="form-control" id="basePath" placeholder="Path" value="{{basePath}}">
                 </div>
 
                 <div class="form-group">

@@ -1,4 +1,5 @@
-# Mystik CMS
+# Mystik CMS [![npm version](http://img.shields.io/npm/v/mystik.svg)](https://npmjs.org/package/mystik) [![dependencies status](https://david-dm.org/mattpwest/mystik.png)](https://npmjs.org/package/mystik)
+
 ## Introduction
 Mystik CMS is a simple, light-weight CMS written in Node.js. It is aimed at small websites that don't update their content that often (this is typical for many small businesses in my experience). So instead of focusing on making an extremely user-friendly editing interface, this CMS focuses on making life as easy as possible for the website developer:
 * easy installation
@@ -34,7 +35,7 @@ While in development mode:
 * [BrowserSync](http://www.browsersync.io/) will automatically reload the page every time something changes and mirror changes across multiple browsers / tabs
 
 The default administrative account is:
-* admin@chaotik.co.za
+* admin@localhost
 * admin
 
 ### Production
@@ -52,8 +53,11 @@ Of course you shouldn't be starting your production instance by hand like this, 
 
 * 0.1.0-alpha.3 (work in progress):
     * Added page types.
+    * Added a second level of navigation.
+    * Added a nice CodeMirror based editor.
+    * Added syntax highlighting for a few languages using CodeMirror.
+    * Added image / file uploads and insertion.
     * Added database upgrades that add new attributes to older database versions.
-    * Added image / file uploads.
     * CLI
         * Changed theming mode to be the default.
         * Added -i switch to install an Upstart script.
@@ -66,8 +70,6 @@ Of course you shouldn't be starting your production instance by hand like this, 
 
 ## Roadmap
 You can view the current TODO list on the [Trello board](https://trello.com/b/ozVTEkDw/mystik-cms).
-
-I aim to have all the high priority (red) items completed by 20 July.
 
 ### Design Goals
 The design goals are informed by my experiences using a variety of PHP-based content management systems and wanting to write one that makes my life as easy as possible for building small sites for friends / family and small-business owners:

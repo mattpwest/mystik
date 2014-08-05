@@ -243,7 +243,7 @@ function handlePOST(req, res) {
 
         //console.log('Saving %s', reqPath);
         db.nodes.update({path: reqPath},
-            {$set: {body: req.body.body, title: req.body.title, type: req.body.type, date: moment()}},
+            {$set: {body: req.body.body, title: req.body.title, type: req.body.type, dateUpdated: moment()}},
             {}, // options
             function(err, numReplaced) {
                 if (err !== null) {
@@ -255,23 +255,31 @@ function handlePOST(req, res) {
                 }
             });
     } else if (actionStr === 'create') {
-        reqPath = reqPath.slice(0, reqPath.length - 1);
+        var rootPath = req.body.basePath;
+        //console.log('Requested root: ', rootPath);
 
-        if (reqPath.length === 0) {
-            reqPath = '/';
+        if (rootPath === undefined) {
+            rootPath = '/';
         } else {
-            reqPath = [''].concat(reqPath).join('/');
-        }
+            rootPath = rootPath.split('/').filter(function(e) {
+                return e.length > 0;
+            });
+            rootPath = [''].concat(rootPath).join('/');
 
-        db.nodes.findOne({path: reqPath}, function(err, parentNode) {
+            if (rootPath === '') {
+                rootPath = '/';
+            }
+        }
+        //console.log('Actual root: ', rootPath);
+
+        db.nodes.findOne({path: rootPath}, function(err, parentNode) {
             if (err !== null) {
-                console.log('Error while finding parent node ' + reqPath + ' to add child to: ', err);
                 errorInternal(req, res, err);
                 return;
             }
 
             if (parentNode === null) {
-                errorInternal(req, res, 'Could not find parent node ' + reqPath + ' to add child to...');
+                errorInternal(req, res, new Error('Could not find parent node ' + rootPath + ' to add child to...'));
                 return;
             }
 
@@ -343,7 +351,6 @@ function renderNode(reqPath, req, res, db) {
             res.render('pages/' + model.type, model);
         }, function(err) {
             if (err !== null) {
-                console.log(err);
                 console.log(err.stack);
                 res.status(500).send('Error rendering node...');
             }
@@ -370,7 +377,10 @@ function renderCreate(reqPath, req, res, db) {
         .then(function(model) {
             res.render('admin/create', model);
         }, function(err) {
-            console.log('Error rendering /create: %s', err);
+            if (err !== null) {
+                console.log(err.stack);
+            }
+            res.status(500).send('Error rendering node...');
         })
         .done();
 }
@@ -399,7 +409,13 @@ function renderEdit(reqPath, req, res, db) {
         })
         .then(function(model) {
             res.render('admin/edit', model);
-        });
+        }, function(err) {
+            if (err !== null) {
+                console.log(err.stack);
+            }
+            res.status(500).send('Error rendering node...');
+        })
+        .done();
 }
 
 function renderDelete(reqPath, req, res, db) {
@@ -447,7 +463,8 @@ function isLoggedIn(req, res, next) {
 
 function errorInternal(req, res, err) {
     console.log(err.stack);
-    res.render('index', {content: '500 Internal server error: ' + err});
+    req.flash('flash', 'An unspecified error occurred.');
+    res.redirect('/');
     // TODO: redirect to an actual 500 page
     // TODO: Set response codes
 }
@@ -474,10 +491,10 @@ function buildModel(node, req, author) {
         //console.log('mystik.buildModel adjusted path: %s', reqPath);
     }
 
-    var nav = null;
-    return getNavigation()
-        .then(function(navigation) {
-            nav = navigation;
+    var navigation = null;
+    return getNavigation(node)
+        .then(function(nav) {
+            navigation = nav;
             //console.log('mystik.buildModel got navigation...');
 
             //console.log('mystik.buildModel generating content from markdown');
@@ -489,10 +506,12 @@ function buildModel(node, req, author) {
                 content: bodyContent,
                 currentUser: req.user,
                 path: reqPath,
+                pathForCreate: reqPath.split('/').length === 3 ? reqPath.split('/').slice(0, 2).join('/') : reqPath,
                 title: node.title,
                 timestamp: moment(node.date).format("Do MMMM YYYY"),
                 flash: req.flash('flash'),
-                navigation: nav,
+                navigation_level0: navigation.levels[0].nodes,
+                navigation_level1: navigation.levels[1].nodes,
                 type: node.type
             };
         });
@@ -517,23 +536,39 @@ function buildModelForEditOrCreate(node, parentNode, req) {
             reqPath = '';
         }
 
-        return getNavigation()
+        var pathParts = reqPath.split('/');
+        var pathBase = '';
+        var pathNode = '';
+        if (pathParts.length >= 3) {
+            pathBase = pathParts.slice(0, 2).join('/');
+            pathNode = pathParts[2];
+        } else if (pathParts.length === 2) {
+            pathBase = '/';
+            pathNode = pathParts[1];
+        } else {
+            pathBase = '/';
+            pathNode = '';
+        }
+
+        return getNavigation(node)
             .then(function(navigation) {
                 return {
                     currentUser: req.user,
                     title: node.title,
-                    basePath: basePath,
+                    pathBase: pathBase,
+                    pathNode: pathNode,
                     path: reqPath,
                     parentId: parentId,
                     body: node.body,
                     timestamp: moment(node.date).format("Do MMMM YYYY"),
                     flash: req.flash('flash'),
-                    navigation: navigation,
+                    navigation_level0: navigation.levels[0].nodes,
+                    navigation_level1: navigation.levels[1].nodes,
                     type: node.type
                 };
             });
     } else { // create
-        return getNavigation()
+        return getNavigation(node)
             .then(function(navigation) {
                 return {
                     currentUser: req.user,
@@ -544,14 +579,15 @@ function buildModelForEditOrCreate(node, parentNode, req) {
                     body: '',
                     timestamp: moment().format("Do MMMM YYYY"),
                     flash: req.flash('flash'),
-                    navigation: navigation,
+                    navigation_level0: navigation.levels[0].nodes,
+                    navigation_level1: navigation.levels[1].nodes,
                     type: 'page'
                 };
             });
     }
 }
 
-function getNavigation() {
+function getNavigation(targetNode) {
     //console.log('mystik.getNavigation()');
     var root = null;
 
@@ -564,10 +600,33 @@ function getNavigation() {
         .then(getChildNodes)
         .then(function(nodes) {
             //console.log('mystik.getNavigation() got child nodes...');
-            navigation = [];
-            navigation.push(root);
-            navigation = navigation.concat(nodes);
-            return navigation;
+            navigation = {
+                levels: [
+                    {level: 0, nodes: [root]},
+                    {level: 1, nodes: []}
+                ]
+            };
+
+            navigation.levels[0].nodes = navigation.levels[0].nodes.concat(nodes);
+            
+            if ((targetNode === null) || (targetNode._id === root._id)) {
+                return navigation;
+            } else {
+                if (targetNode.path.split('/').length === 2) {
+                    return getChildNodes(targetNode)
+                        .then(function(children) {
+                            navigation.levels[1].nodes = children;
+                            return navigation;
+                        });
+                } else if (targetNode.path.split('/').length === 3) {
+                    return getParent(targetNode)
+                        .then(getChildNodes)
+                        .then(function(children) {
+                            navigation.levels[1].nodes = children;
+                            return navigation;
+                        });
+                }
+            }
         });
 }
 
@@ -606,7 +665,7 @@ function getParent(node) {
 function getChildNodes(node) {
     var deferred = Q.defer();
 
-    db.nodes.find({parent_id: node._id}, function(err, nodes) {
+    db.nodes.find({parent_id: node._id}).sort({date: 1}).exec(function(err, nodes) {
         if (err !== null) {
             deferred.reject(new Error('Error finding child nodes of "' + node.path + '".'));
         } else {
