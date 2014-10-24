@@ -28,7 +28,7 @@ var liveReloadServer = null;
 
 gulp.task('bower', function() {
     return bower()
-            .pipe(gulp.dest(path.join(wrkDir, 'bower_components')));
+        .pipe(gulp.dest(path.join(wrkDir, 'bower_components')));
 });
 
 gulp.task('loadBowerCss', ['bower'], function() {
@@ -36,11 +36,13 @@ gulp.task('loadBowerCss', ['bower'], function() {
     libraries.css = [];
 
     return gulp
-            .src(bowerFiles({base: wrkDir}))
-            .pipe(cssFilter)
-            .pipe(tap(function(file, t) {
-                libraries.css.push(file.path);
-            }));
+        .src(bowerFiles({
+            base: wrkDir
+        }))
+        .pipe(cssFilter)
+        .pipe(tap(function(file, t) {
+            libraries.css.push(file.path);
+        }));
 });
 
 gulp.task('loadBowerJs', ['bower', 'loadBowerCss'], function() {
@@ -48,21 +50,25 @@ gulp.task('loadBowerJs', ['bower', 'loadBowerCss'], function() {
     libraries.js = [];
 
     return gulp
-            .src(bowerFiles({base: wrkDir}))
-            .pipe(jsFilter)
-            .pipe(tap(function(file, t) {
-                libraries.js.push(file.path);
-            }));
+        .src(bowerFiles({
+            base: wrkDir
+        }))
+        .pipe(jsFilter)
+        .pipe(tap(function(file, t) {
+            libraries.js.push(file.path);
+        }));
 });
 
 gulp.task('loadBowerFonts', ['bower', 'loadBowerJs', 'loadBowerCss'], function() {
     var fontsFilter = filter('**/glyphicons-halflings-regular.*');
 
     return gulp
-            .src(bowerFiles({base: wrkDir}))
-            .pipe(fontsFilter)
-            .pipe(flatten())
-            .pipe(gulp.dest(path.join(wrkDir, 'static', 'fonts')));
+        .src(bowerFiles({
+            base: wrkDir
+        }))
+        .pipe(fontsFilter)
+        .pipe(flatten())
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'fonts')));
 });
 
 gulp.task('loadBowerFiles', ['loadBowerCss', 'loadBowerJs', 'loadBowerFonts'], function(cb) {
@@ -125,7 +131,9 @@ gulp.task('css', ['less'], function() {
         .pipe(minifyCSS())
         .pipe(rename('main.min.css'))
         .pipe(gulp.dest(path.join(wrkDir, 'static', 'css')))
-        .pipe(browserSync.reload({stream: true}));
+        .pipe(browserSync.reload({
+            stream: true
+        }));
 });
 
 gulp.task('jsCheck', ['loadBowerFiles'], function() {
@@ -150,30 +158,34 @@ gulp.task('jsCodeMirror', ['jsCodeMirrorAddOns', 'jsCodeMirrorModes']);
 
 gulp.task('jsLibraries', ['jsCodeMirror'], function() {
     return gulp.src(libraries.js)
-      .pipe(concat('libraries.js'))
-      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
-      .pipe(uglify())
-      .pipe(rename('libraries.min.js'))
-      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
-      .pipe(browserSync.reload({stream: true}))
-      .on('data', function() {})
-      .on('error', function(err) {
-        console.log(err);
-      });
+        .pipe(concat('libraries.js'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
+        .pipe(uglify())
+        .pipe(rename('libraries.min.js'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
+        .pipe(browserSync.reload({
+            stream: true
+        }))
+        .on('data', function() {})
+        .on('error', function(err) {
+            console.log(err);
+        });
 })
 
 gulp.task('js', ['jsLibraries', 'jsCheck'], function() {
     return gulp.src(path.join(wrkDir, 'js', '*.js'))
-      .pipe(concat('main.js'))
-      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
-      .pipe(uglify())
-      .pipe(rename('main.min.js'))
-      .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
-      .pipe(browserSync.reload({stream: true}))
-      .on('data', function() {})
-      .on('error', function(err) {
-        console.log(err);
-      });
+        .pipe(concat('main.js'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
+        .pipe(uglify())
+        .pipe(rename('main.min.js'))
+        .pipe(gulp.dest(path.join(wrkDir, 'static', 'js')))
+        .pipe(browserSync.reload({
+            stream: true
+        }))
+        .on('data', function() {})
+        .on('error', function(err) {
+            console.log(err);
+        });
 });
 
 gulp.task('server-scripts', function() {
@@ -187,14 +199,15 @@ gulp.task('server-scripts', function() {
 
 gulp.task('build-all', ['css', 'js']);
 
-gulp.task('theming', ['build-all'], function () {
+gulp.task('theming', ['build-all'], function() {
     var mainScript = path.join(srcDir, 'server.js');
     //liveReloadServer = livereload();
 
     console.log('CONFIGPORT: %d', config.port);
     var server = require(path.join(srcDir, 'server.js'));
     browserSync.init(['templates/**/*.html'], {
-        proxy: 'localhost:' + config.port
+        proxy: 'localhost:' + config.port,
+        port: config.browserSyncPort
     });
 
     libraries.js.push(path.join(wrkDir, 'js', 'main.js'));
